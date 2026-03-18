@@ -26,20 +26,36 @@ class CustomMedal : UltimateMedalsExtended::IMedal {
 
 array<CustomMedal> exports = {};
 #endif
-
 namespace ExportHandler {
     void Export() {
         KillExports();
-#if DEPENDENCY_ULTIMATEMEDALSEXTENDED
         array<CMedal> CustomMedals = SettingHandler::GetCustomMedals();
+#if DEPENDENCY_ULTIMATEMEDALSEXTENDED
         for (uint i = 0; i < CustomMedals.Length; i++) {
             CustomMedal UMEMedal;
             UMEMedal.name = CustomMedals[i].Name;
             UMEMedal.icon = CustomMedals[i].GetIcon();
             UMEMedal.time = CustomMedals[i].Time;
+            if (UltimateMedalsExtended::HasMedal(UMEMedal.name)) {
+                continue;
+            }
             UltimateMedalsExtended::AddMedal(UMEMedal);
             exports.InsertLast(UMEMedal);
         }
+#endif
+    }
+
+    void UpdateExport(CMedal medal) {
+#if DEPENDENCY_ULTIMATEMEDALSEXTENDED
+        UltimateMedalsExtended::RemoveMedal(medal.Name);
+        CustomMedal UMEMedal;
+        UMEMedal.name = medal.Name;
+        UMEMedal.icon = medal.GetIcon();
+        UMEMedal.time = medal.Time;
+        if (UltimateMedalsExtended::HasMedal(UMEMedal.name)) {
+            return;
+        }
+        UltimateMedalsExtended::AddMedal(UMEMedal);
 #endif
     }
 
