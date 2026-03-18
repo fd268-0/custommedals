@@ -17,6 +17,9 @@ class CMedal {
     int GetDeltaFromPb() {
         return Pb.Time-Time;
     }
+    void UpdateExportTime() {
+        ExportHandler::UpdateExport(this);
+    }
     int Time = -1;
     string IconColor = "0ff";
     string Icon = "";
@@ -27,8 +30,57 @@ class CMedal {
 CMedal Pb;
 array<CMedal> Medals = {};
 SCORETYPE mapType = SCORETYPE::TimeAttack;
+array<int> queuedPositionsToGet = {};
+dictionary positions = {};
 
 namespace MedalHandler {
+    int getTimeAtPos(const int position) {
+        if (position > 10000 || position < 1) {
+            warn("Position invalid for request.");
+            return -1;
+        }
+        auto app = cast<CTrackMania>(GetApp());
+        auto track = app.RootMap;
+
+        if (app.RootMap is null) {
+            warn("Tried to get a time when no map was avaliable.");
+            return -1;
+        }
+
+
+        NadeoServices::AddAudience("NadeoLiveServices");
+
+        while (! NadeoServices::IsAuthenticated("NadeoLiveServices")) {
+            sleep(100);
+        }
+
+        auto request = NadeoServices::Get("NadeoLiveServices", 'https://live-services.trackmania.nadeo.live/api/token/leaderboard/group/Personal_Best/map/' + track.MapInfo.MapUid + '/top?length=1&onlyWorld=true&offset=' + (position-1) );
+        request.Start();
+
+        while (! request.Finished()) {
+            sleep(100);
+        }
+        int time = -1;
+        if (app.RootMap is null) {
+            warn("No map is avaliable to update the record for.");
+            return -1;
+        }
+        auto mapInfo = track.MapInfo;
+        if (request.Finished()) {
+            auto reques = request.Json();
+            if (reques.HasKey("tops")) {
+                auto tops = reques.Get("tops");
+                if ((tops.Length > 0 ) ? tops[0].HasKey("top") : false) {
+                    auto top = tops[0].Get("top");
+                    if ((top.Length > 0 ) ? top[0].HasKey("score") : false) {
+                        auto keys = top[0].Get("score");
+                        time = keys;
+                    }
+                }
+            }
+        }
+        return time;
+    }
 
     string FormatInt(const int num, const bool&in isForDelta = false) {
         string txt = "";
@@ -62,7 +114,6 @@ namespace MedalHandler {
     }
 
     void RenderTime(CMedal medal) {
-
         UI::TableNextColumn();
         string icon = medal.GetIcon();
         if (medal.Time < 0) {
@@ -101,6 +152,9 @@ namespace MedalHandler {
         auto app = cast<CTrackMania>(GetApp());
         auto track = app.RootMap;
         if (GetVisiblity()) {
+            if (Medals == {}) {
+                updLBs = true;
+            }
             auto mapInfo = track.MapInfo;
             UpdateCurrentPb();
             Medals = {};
