@@ -1,8 +1,16 @@
 [Setting name="Enabled Display" category="Display"]
 bool Enabled = true;
 
-[Setting name="UME Exports" category="Display"]
+[Setting name="Hide N/A Times" category="Display"]
+bool HideNA = false;
+
+
+#if DEPENDENCY_ULTIMATEMEDALSEXTENDED
+
+[Setting name="Export To UME" category="Display"]
 bool MaintainUME = true;
+
+#endif
 
 dictionary medalDefaults = {
     {"_Icon",Icons::Circle},
@@ -12,7 +20,10 @@ dictionary medalDefaults = {
 };
 dictionary icons = Icons::GetAll();
 
-
+bool iconSelOpen = false;
+string iconSelSearch = "";
+bool updLBs = false;
+bool saved = true;
 
 
 namespace SettingHandler {
@@ -23,17 +34,28 @@ namespace SettingHandler {
     }
 
     void SaveSettings() {
+        updLBs = true;
         JsonLoader::SaveDictionaryToFile("Settings.json", jsonSettings);
     }
 
-    void NewMdl() {
+    string NewMdl() {
         string id = Time::get_Stamp()+"@"+Time::get_Now();
         for (uint i = 0; i < medalDefaults.GetKeys().Length; i++) {
             auto itemName = medalDefaults.GetKeys()[i];
             auto item = string(medalDefaults[itemName]);
             jsonSettings[id + itemName] = item;
         }
-        SaveSettings();
+        MedalHandler::UpdateAllTimes();
+        saved = false;
+        return id;
+    }
+
+    void AddPrsMdl(const string name, const string eq) {
+        string id = NewMdl();
+        jsonSettings[id] = name;
+        jsonSettings[id+"_Equation"] = eq;
+        UI::ShowNotification("Custom Medals","Custom Medal Added! Check your Medals tab.");
+        MedalHandler::UpdateAllTimes();
     }
 
     void DelMdl(const string id) {
@@ -44,7 +66,8 @@ namespace SettingHandler {
                 jsonSettings.Delete(itemName);
             }
         }
-        SaveSettings();
+        MedalHandler::UpdateAllTimes();
+        saved = false;
     }
 
     array<CMedal> GetCustomMedals() {
@@ -56,6 +79,7 @@ namespace SettingHandler {
             }
             CustomMedals.InsertLast(IdToClass(itemName));
         }
+        updLBs = false;
         return CustomMedals;
     }
 
@@ -77,12 +101,19 @@ namespace SettingHandler {
 
     [SettingsTab name="Medals"]
     void RenderMedalCreation() {
+        if (! Permissions::ViewRecords()) {
+            CDocument@ doc = CDocument("Access Denied","In order to use Custom Medals, you must get Standard or Club Access.\nWhy? You can access records through Custom Medals.",{});
+            doc.generateDocumentUI();
+		    return;
+	    }
         UI::BeginTable("SSTable", 5, UI::TableFlags::SizingFixedFit);
+        int generated = 0;
         for (uint i = 0; i < jsonSettings.GetKeys().Length; i++) {
             auto itemName = jsonSettings.GetKeys()[i];
             if (itemName.Contains("_")) {
                 continue;
             }
+            generated++;
             UI::TableNextRow();
             auto itemNameValue = string(jsonSettings[itemName]);
             auto itemIcn = itemName + "_Icon";
@@ -91,6 +122,10 @@ namespace SettingHandler {
             auto itemIcnValue = string(jsonSettings[itemIcn]);
             auto itemIcnColValue = string(jsonSettings[itemIcnCol]);
             auto itemEquValue = string(jsonSettings[itemEqu]);
+            bool c1 = false;
+            bool c2 = false;
+            bool c3 = false;
+            bool c4 = false;
             UI::TableNextColumn();
             UI::PushItemWidth(50);
             UI::Text("\\$"+itemIcnColValue+""+itemIcnValue+ "\\$fff ");
@@ -103,31 +138,39 @@ namespace SettingHandler {
                 UI::Text("Medal Name");
                 UI::PushID(itemName+"_nm");
                 UI::PushItemWidth(150);
-                jsonSettings[itemName] = UI::InputText("", itemNameValue);
+                jsonSettings[itemName] = UI::InputText("", itemNameValue, c1);
                 UI::PopItemWidth();
                 UI::PopID();
                 UI::TableNextColumn();
                 UI::Text("Medal Equation");
                 UI::PushID(itemEqu);
-                UI::PushItemWidth(150);
-                jsonSettings[itemEqu] = UI::InputText("", itemEquValue);
+                UI::PushItemWidth(250);
+                jsonSettings[itemEqu] = UI::InputText("", itemEquValue, c2);
                 UI::PopItemWidth();
                 UI::PopID();
                 UI::TableNextColumn();
                 UI::Text("Icon");
+                UI::SameLine();
+                if (UI::TextLink(Icons::Pencil)) {
+                    iconSelOpen = ! iconSelOpen;
+                }
                 UI::PushID(itemIcn);
                 UI::PushItemWidth(50);
-                jsonSettings[itemIcn] = UI::InputText("", itemIcnValue);
+                jsonSettings[itemIcn] = UI::InputText("", itemIcnValue, c3);
                 UI::PopItemWidth();
                 UI::PopID();
                 UI::TableNextColumn();
                 UI::Text("Color");
                 UI::PushID(itemIcnCol);
                 UI::PushItemWidth(50);
-                jsonSettings[itemIcnCol] = UI::InputText("", itemIcnColValue);
+                jsonSettings[itemIcnCol] = UI::InputText("", itemIcnColValue, c4);
                  UI::PopItemWidth();
                 UI::PopID();
                 UI::TableNextColumn();
+            }
+            if (c1 || c2 || c3 || c4) {
+                MedalHandler::UpdateAllTimes();
+                saved = false;
             }
             UI::PopID();
         }
@@ -137,19 +180,37 @@ namespace SettingHandler {
         }
         UI::SameLine();
         if (UI::Button("Save")) {
-            ExportHandler::Export();
             SaveSettings();
+            saved = true;
+            MedalHandler::UpdateAllTimes();
+            ExportHandler::Export();
         }
-        UI::Text("\\$999" + Icons::InfoCircle + " Supported operators: + - * / ^ %");
-        UI::Text("\\$999" + Icons::InfoCircle + " Supported bracketed operators: sqrt()");
-        UI::Text("\\$999" + Icons::InfoCircle + " Brackets supported");
-        UI::Text("\\$999" + Icons::InfoCircle + " Supported variables listed below:");
-        UI::Text("\\$777Bronze - $BT");
-        UI::Text("\\$777Silver - $ST");
-        UI::Text("\\$777Gold - $GT");
-        UI::Text("\\$777Author - $AT");
-        UI::Text("\\$777Warrior - $WT \\$555Returns -1 if not avaliable.");
-        UI::Text("\\$777Personal Best - $PB");
-         UI::Text("\\$555Leaderboard Position times WIP.");
+        if (! saved) {
+            UI::SameLine();
+            UI::Text("\\$139"+Icons::ExclamationCircle+" Unsaved Changes");
+        }
+        if (generated > 0) {
+             UI::PushFontSize(24);
+            UI::Text("Quick Reference");
+            UI::PopFontSize();
+            UI::Text(documents[5].Description+"\n"+documents[6].Description);
+            UI::Text("\\$ff0Leaderboard: \\$990"+positions.GetKeys().Length+"\\$900/10 MAX\\$990 Positions Loaded");
+            if (queuedPositionsToGet.Length > 0) {
+                UI::SameLine();
+                UI::Text("+   \\$090"+queuedPositionsToGet.Length+" Queued Positions");
+            }
+            if (positions.GetKeys().Length+queuedPositionsToGet.Length >= 10 ) {
+                UI::Text("\\$900Remove unwanted leaderboard requests by reloading and reduce requests to 10 if possible!");
+            }
+            if (UI::Button("Reload Leaderboard")) {
+                positions = {};
+                updLBs = true;
+                MedalHandler::UpdateAllTimes();
+            }
+            UI::Text("\\$999" + Icons::InfoCircle + " Check the Documentation for more information.");
+        } else {
+            documents[documents.Length-1].generateDocumentUI();
+            UI::Text("\\$999" + Icons::InfoCircle + " Create your first custom medal!");
+        }
     }
 }
