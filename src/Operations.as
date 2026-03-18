@@ -2,6 +2,7 @@ enum OPERTYPE {
     Number,
     Operation,
     Bracket,
+    Condition,
     Unknown,
 }
 namespace OperationHandler {
@@ -9,6 +10,13 @@ namespace OperationHandler {
     int iter = 0;
 
     array<string> rangeToStr(const array<string> curarr, const int start, const int end, const string str) {
+        array<string> arr = curarr;
+        arr.RemoveRange(Math::Max(0,start), Math::Min(end,arr.Length-1)-start+1);
+        arr.InsertAt(start, str);
+        return arr;
+    }
+
+    array<string> rangeToArr(const array<string> curarr, const int start, const int end, const array<string> str) {
         array<string> arr = curarr;
         arr.RemoveRange(Math::Max(0,start), Math::Min(end,arr.Length-1)-start+1);
         arr.InsertAt(start, str);
@@ -29,13 +37,100 @@ namespace OperationHandler {
         return arr;
     }
 
-    array<string> rightHandedOperators = {"sqrt"};
+    array<string> rightHandedOperators = {"sqrt", "floor", "ceil", "round", "abs"};
+    dictionary functions = {
+        {"min",2},
+        {"max",2}
+    };
 
-    array<string> performOperand(const array<string> curarr, const array<string> strs, bool&in righthanded = false) {
+    void iterateEscapeCounter() {
         iter += 1;
         if (iter > 1000) {
             escape = true;
         }
+
+    };
+
+    array<string> performFunction(const array<string> curarr, const array<string> strs) {
+        iterateEscapeCounter();
+
+        array<string> arr = curarr;
+        int pos = getPositionsOfStrs(arr, strs)[0];
+        string op = arr[pos];
+        int size = (int(functions[op])*2);
+        array<string> range = getRangeFromList(arr, pos, pos+size-1);
+        if (range.Length < uint(size)) {
+            escape = true;
+            return {};
+        }
+        array<float> floats = {};
+        for (uint i = 1; i < range.Length; i = i + 2) {
+            if (Text::TryParseFloat(range[i], 0) == false) {
+                escape = true;
+                return {};
+            } else {
+                floats.InsertLast(Text::ParseFloat(range[i]));
+            }
+        }
+        float answer = -1;
+
+        if (op == "min") {
+            answer = Math::Min(floats[0], floats[1]);
+        } else if (op == "max") {
+            answer = Math::Max(floats[0], floats[1]);
+        } else {
+            escape = true;
+            return {};
+        }
+
+        return rangeToStr(arr, pos, pos+size-1, ""+answer);
+    }
+
+    array<string> performConditional(const array<string> curarr) {
+        iterateEscapeCounter();
+
+        array<string> arr = curarr;
+        int pos = getPositionsOfStrs(arr, {"?"})[0];
+        array<string> range = getRangeFromList(arr, pos-3, pos+3);
+        // num, conditional, num, ?, num, :, num
+        if (range.Length < 7) {
+            escape = true;
+            return {};
+        }
+        if (Text::TryParseFloat(range[0], 0) == false || Text::TryParseFloat(range[2], 0) == false || Text::TryParseFloat(range[4], 0) == false || Text::TryParseFloat(range[6], 0) == false) {
+            escape = true;
+            return {};
+        }
+        float nc1 = Text::ParseFloat(range[0]);
+        string condition = range[1];
+        float nc2 = Text::ParseFloat(range[2]);
+
+        float atrue = Text::ParseFloat(range[4]);
+        float afalse = Text::ParseFloat(range[6]);
+        bool isTrue = false;
+        if (condition == ">") {
+            isTrue = (nc1 > nc2);
+        } else if (condition == "<") {
+            isTrue = (nc1 < nc2);
+        } else if (condition == "==") {
+            isTrue = (nc1 == nc2);
+        } else if (condition == ">=") {
+            isTrue = (nc1 >= nc2);
+        } else if (condition == "<=") {
+            isTrue = (nc1 <= nc2);
+        } else if (condition == "!=") {
+            isTrue = (nc1 != nc2);
+        } else {
+            escape = true;
+            return {};
+        } 
+
+        float answer = isTrue ? atrue : afalse;
+        return rangeToStr(arr, pos-3, pos+3, ""+answer);
+    }
+
+    array<string> performOperand(const array<string> curarr, const array<string> strs, bool&in righthanded = false) {
+        iterateEscapeCounter();
 
         array<string> arr = curarr;
         int pos = getPositionsOfStrs(arr, strs)[0];
@@ -44,14 +139,17 @@ namespace OperationHandler {
         }
         array<string> range = getRangeFromList(arr, righthanded ? pos : pos-1, pos+1);
         if (range.Length < uint(righthanded ? 2 : 3)) {
+            escape = true;
             return {};
         }
         if (righthanded) {
             if (Text::TryParseFloat(range[1], 0) == false) {
+                escape = true;
                 return {};
             }
         } else {
             if (Text::TryParseFloat(range[0], 0) == false || Text::TryParseFloat(range[2], 0) == false) {
+                escape = true;
                 return {};
             }
         }
@@ -77,9 +175,17 @@ namespace OperationHandler {
         } else if (op == "%") {
             answer = n1 % n2;
         } else if (op == "sqrt") {
-
             answer = n2 ** 0.5;
+        } else if (op == "float") {
+            answer = Math::Floor(n2);
+        } else if (op == "ceil") {
+            answer = Math::Ceil(n2);
+        } else if (op == "round") {
+            answer = Math::Round(n2);
+        } else if (op == "abs") {
+            answer = Math::Abs(n2);
         } else {
+            escape = true;
             return {};
         }
         return rangeToStr(arr, righthanded ? pos : pos-1, pos+1, ""+answer);
@@ -107,7 +213,7 @@ namespace OperationHandler {
         return arr;
     }
 
-    float arrayToAns(const array<string> curarr) {
+    array<string> arrayToArr(const array<string> curarr) {
         iter = 0;
         escape = false;
         array<string> arr = curarr;
@@ -118,6 +224,7 @@ namespace OperationHandler {
             arr = replaceValues(arr, "$ST", track.MapInfo.TMObjective_SilverTime);
             arr = replaceValues(arr, "$GT", track.MapInfo.TMObjective_GoldTime);
             arr = replaceValues(arr, "$AT", track.MapInfo.TMObjective_AuthorTime);
+            arr = replaceValues(arr, "$TYPE", int(mapType));
             arr = replaceValues(arr, "$PB", Pb.Time);
 #if DEPENDENCY_WARRIORMEDALS
             int warriorTime = WarriorMedals::GetWMTime();
@@ -126,7 +233,28 @@ namespace OperationHandler {
             }
             arr = replaceValues(arr, "$WT", warriorTime);
 #endif
+            for (uint i = 0; i < positions.GetKeys().Length; i++) {
+                string pos = positions.GetKeys()[i];
+                int time = int(positions[pos]);
+                arr = replaceValues(arr, "$#"+pos, time);
+            }
+            for (uint i = 0; i < queuedPositionsToGet.Length; i++) {
+                arr = replaceValues(arr, "$#"+queuedPositionsToGet[i], -1);
+            }
+            for (uint i = 0; i < arr.Length; i++) {
+                string item = arr[i];
+                if (item.SubStr(0,2) == "$#" && updLBs) {
+                    string posStr = item.SubStr(2);
+                    if (Text::TryParseInt(posStr, 0)) {
+                        int pos = Text::ParseInt(posStr);
+                        if (! positions.Exists(posStr) && queuedPositionsToGet.Find(pos) < 0) {
+                            queuedPositionsToGet.InsertLast(pos);
+                        }
+                    }
+                }
+            }
         } 
+
         
         while (getPositionsOfStrs(arr, {"("}).Length > 0 && escape == false) {
             array<int> leftBrackets = getPositionsOfStrs(arr, {"("});
@@ -134,27 +262,47 @@ namespace OperationHandler {
             int lPos = leftBrackets[0];
             if (rightBrackets.Length > 0) {
                 int rPos = rightBrackets[rightBrackets.Length-1];
-                float answer = arrayToAns(getRangeFromList(arr, lPos+1, rPos-1));
-                arr = rangeToStr(arr, lPos, rPos, ""+answer);
+                array<string> answer = arrayToArr(getRangeFromList(arr, lPos+1, rPos-1));
+                arr = rangeToArr(arr, lPos, rPos, answer);
             } else {
                 arr.RemoveAt(lPos);
             }
         }
 
-         while (getPositionsOfStrs(arr, {"^","sqrt"}).Length > 0 && escape == false) {
-            arr = performOperand(arr, {"^","sqrt"});
+        while (getPositionsOfStrs(arr, rightHandedOperators).Length > 0 && escape == false) {
+            arr = performOperand(arr, rightHandedOperators);
+        }
+
+        while (getPositionsOfStrs(arr, {"^"}).Length > 0 && escape == false) {
+            arr = performOperand(arr, {"^"});
         }
 
         while (getPositionsOfStrs(arr, {"*","/","%"}).Length > 0 && escape == false) {
             arr = performOperand(arr, {"*","/","%"});
         }
 
+
         while (getPositionsOfStrs(arr, {"+","-"}).Length > 0 && escape == false) {
             arr = performOperand(arr, {"+","-"});
         }
-        float ans = 0;
-        if (arr.Length > 0) {
-            Text::TryParseFloat(arr[0], ans);
+
+        while (getPositionsOfStrs(arr, functions.GetKeys()).Length > 0 && escape == false) {
+            arr = performFunction(arr, functions.GetKeys());
+        }
+
+        while (getPositionsOfStrs(arr, {"?"}).Length > 0 && escape == false) {
+            arr = performConditional(arr);
+        }
+        return arr;
+    }
+
+    float arrayToAns(const array<string> curarr) {
+        array<string> arr = arrayToArr(curarr);
+        float ans = -1;
+        if (arr.Length > 0 && escape == false) {
+            if (Text::TryParseFloat(arr[0], 0)) {
+                ans = Text::ParseFloat(arr[0]);
+            }
         }
         return ans;
     }
@@ -167,10 +315,14 @@ namespace OperationHandler {
         for (int i = 0; i < int(str.Length); i++) {
 		    string byte = str.SubStr(i, 1);
             OPERTYPE byteOperation = OPERTYPE::Unknown;
-            if (Regex::Search(byte, "([*^%+-\/])").Length > 0 && curOperation != OPERTYPE::Operation) {
+            if (Regex::Search(byte, "([*^%+\\/,?:])").Length > 0 && curOperation != OPERTYPE::Operation) {
                 byteOperation = OPERTYPE::Operation;
             } else if (Regex::Search(byte, "([()])").Length > 0) {
                 byteOperation = OPERTYPE::Bracket;
+            } else if (Regex::Search(byte, "([<>=!])").Length > 0) {
+                byteOperation = OPERTYPE::Condition;
+            } else if (Regex::Search(byte, "([-])").Length > 0 && (str.SubStr(i-1, 1) == ")" || curOperation == OPERTYPE::Number)) {
+                byteOperation = OPERTYPE::Operation;
             } else {
                 byteOperation = OPERTYPE::Number;
             }
