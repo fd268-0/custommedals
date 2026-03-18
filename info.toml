@@ -2,7 +2,7 @@
 name        = "Custom Medals"
 author      = "fd268"
 category    = "Race"
-version     = "0.3.0"
+version     = "0.3.1"
 [script]
 dependencies = [ "NadeoServices" ]
 optional_dependencies = [ "WarriorMedals","UltimateMedalsExtended" ]
