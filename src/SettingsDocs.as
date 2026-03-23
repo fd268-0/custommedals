@@ -44,10 +44,12 @@ array<CDocument@> documents = {
     @CDocument("If Statements","Usage: number\\$0f0 condition\\$fff number \\$ff0?\\$fff number \\$ff0:\\$fff number\n\\$999If statements are calculated after all functions and operators are calculated.",{}),
     @CDocument("Conditions","Usage in If Statements.\n\\$999Current conditions: >, <, ==, !=, >=, <=",{}),
     @CDocument("Time Variables","\\$fff$AT \\$999Author Time\n\\$fff$GT \\$999Gold Time\n\\$fff$ST \\$999Silver Time\n\\$fff$BT \\$999Bronze Time\n\\$0ff$WT \\$099Warrior Time \\$900*Needs Warrior Medals plugin. *Returns -1 if not avaliable.\n\\$ff0$PB \\$990Personal Best\n\\$0f0$#num \\$090Leaderboard Time \\$070*num is the position you'd like. Calculated before anything else. \\$900*Returns -1 if not avaliable.\n\\$777Getting times of certain players coming soon.",{}),
-    @CDocument("Other Variables","\\$fff$TYPE \\$999Map Type. \\$990(0 = TimeAttack, 1 = Stunt, 2 = Platform)",{}),
+    @CDocument("Other Variables","\\$fff$TYPE \\$999Map Type. \\$990(0 = TimeAttack, 1 = Stunt, 2 = Platform)\n\\$fff$VALIDATE \\$999Validation Time. \\$990(-1 if no ghost found, refer to $VALIDATE in docs for more info)\n\\$fff$CLONES \\$999Amount of Clones.\n\\$fff$LAPS \\$999Laps.",{}),
     @CDocument("Exports","Exporting to Ultimate Medals Extended (UME) is an option that is enabled by default if you have the plugin.\n\\$f33Times are updated upon clicking Save, when a leaderboard time request is complete, and when a map is loaded.\n\\$fffTo get a medal to display on UME, it must:\n\\$0f0"+Icons::CheckCircle+" Not show N/A (by being less then 0)\n\\$0f0"+Icons::CheckCircle+" Not already have a medal of the same name on UME",{"UME"}),
     @CDocument("Ordering","The calculation order for equations is: \\$f9fVariable Calculations -> \\$f99Brackets -> \\$ff9Functions -> \\$9f9Exponents -> \\$9f9Mult, Divide -> \\$9f9Add, Sub -> \\$ff9Multi-Parameter Functions -> \\$9ffIf Statements",{}),
-    @CDocument("Examples","Here's some examples of what you can make:",{})
+    @CDocument("Basics","All medal equations must return an integer. There are constant variables avaliable, although there are no changeable variables. Some variables are not a number, and you must use if statements to return a number.",{}),
+    @CDocument("Examples","Here's some examples of what you can make:",{}),
+    @CDocument("$VALIDATE","$VALIDATE returns the Map.ChallengeParameters.RaceValidateGhost.RaceTime (integer), or -1 if not found.\n\\$999Restrictions: The map must be validated with a ghost in the Winter 2026 update or later. Note: This can be used as an alternative for the $AT.",{"Variable"})
 };
 
 
