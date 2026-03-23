@@ -4,6 +4,18 @@ bool Enabled = true;
 [Setting name="Hide N/A Times" category="Display"]
 bool HideNA = false;
 
+[Setting name="Hide PB" category="Display"]
+bool HidePB = false;
+
+[Setting name="Hide Delta" category="Display"]
+bool HideDelta = false;
+
+[Setting name="Hide Name" category="Display"]
+bool HideName = false;
+
+[Setting name="Hide Icon" category="Display"]
+bool HideIcon = false;
+
 
 #if DEPENDENCY_ULTIMATEMEDALSEXTENDED
 
