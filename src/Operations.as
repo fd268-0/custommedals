@@ -97,35 +97,37 @@ namespace OperationHandler {
             escape = true;
             return {};
         }
-        if (Text::TryParseFloat(range[0], 0) == false || Text::TryParseFloat(range[2], 0) == false || Text::TryParseFloat(range[4], 0) == false || Text::TryParseFloat(range[6], 0) == false) {
+        float nc1 = 0;
+        float nc2 = 0;
+        string condition = range[1];
+        if ((Text::TryParseFloat(range[0], 0) == false || Text::TryParseFloat(range[2], 0) == false) && ! (condition == "==" || condition == "!=")) {
             escape = true;
             return {};
         }
-        float nc1 = Text::ParseFloat(range[0]);
-        string condition = range[1];
-        float nc2 = Text::ParseFloat(range[2]);
+        nc1 = Text::ParseFloat(range[0]);
+        nc2 = Text::ParseFloat(range[2]);
 
-        float atrue = Text::ParseFloat(range[4]);
-        float afalse = Text::ParseFloat(range[6]);
+        string atrue = range[4];
+        string afalse = range[6];
         bool isTrue = false;
         if (condition == ">") {
             isTrue = (nc1 > nc2);
         } else if (condition == "<") {
             isTrue = (nc1 < nc2);
         } else if (condition == "==") {
-            isTrue = (nc1 == nc2);
+            isTrue = (range[0] == range[2]);
         } else if (condition == ">=") {
             isTrue = (nc1 >= nc2);
         } else if (condition == "<=") {
             isTrue = (nc1 <= nc2);
         } else if (condition == "!=") {
-            isTrue = (nc1 != nc2);
+            isTrue = (range[0] != range[2]);
         } else {
             escape = true;
             return {};
         } 
 
-        float answer = isTrue ? atrue : afalse;
+        string answer = isTrue ? atrue : afalse;
         return rangeToStr(arr, pos-3, pos+3, ""+answer);
     }
 
@@ -220,35 +222,48 @@ namespace OperationHandler {
         auto app = cast<CTrackMania>(GetApp());
         auto track = app.RootMap;
         if (track !is null) {
-            arr = replaceValues(arr, "$BT", track.MapInfo.TMObjective_BronzeTime);
-            arr = replaceValues(arr, "$ST", track.MapInfo.TMObjective_SilverTime);
-            arr = replaceValues(arr, "$GT", track.MapInfo.TMObjective_GoldTime);
-            arr = replaceValues(arr, "$AT", track.MapInfo.TMObjective_AuthorTime);
-            arr = replaceValues(arr, "$TYPE", int(mapType));
-            arr = replaceValues(arr, "$PB", Pb.Time);
+            if (track.MapInfo !is null && track.ChallengeParameters !is null) {
+                arr = replaceValues(arr, "$BT", track.MapInfo.TMObjective_BronzeTime);
+                arr = replaceValues(arr, "$ST", track.MapInfo.TMObjective_SilverTime);
+                arr = replaceValues(arr, "$GT", track.MapInfo.TMObjective_GoldTime);
+                arr = replaceValues(arr, "$AT", track.MapInfo.TMObjective_AuthorTime);
+                arr = replaceValues(arr, "$CLONES", track.MapInfo.TMObjective_NbClones);
+                if (track.MapInfo.TMObjective_IsLapRace) {
+                    arr = replaceValues(arr, "$LAPS", track.MapInfo.TMObjective_NbLaps);
+                } else {
+                    arr = replaceValues(arr, "$LAPS", 1);
+                }
+                arr = replaceValues(arr, "$TYPE", int(mapType));
+                if (track.ChallengeParameters.RaceValidateGhost !is null) {
+                    arr = replaceValues(arr, "$VALIDATE", track.ChallengeParameters.RaceValidateGhost.RaceTime);
+                } else {
+                    arr = replaceValues(arr, "$VALIDATE", -1);
+                }
+                arr = replaceValues(arr, "$PB", Pb.Time);
 #if DEPENDENCY_WARRIORMEDALS
-            int warriorTime = WarriorMedals::GetWMTime();
-            if (warriorTime <= 0) {
-                warriorTime = -1;
-            }
-            arr = replaceValues(arr, "$WT", warriorTime);
+                int warriorTime = WarriorMedals::GetWMTime();
+                if (warriorTime <= 0) {
+                    warriorTime = -1;
+                }
+                arr = replaceValues(arr, "$WT", warriorTime);
 #endif
-            for (uint i = 0; i < positions.GetKeys().Length; i++) {
-                string pos = positions.GetKeys()[i];
-                int time = int(positions[pos]);
-                arr = replaceValues(arr, "$#"+pos, time);
-            }
-            for (uint i = 0; i < queuedPositionsToGet.Length; i++) {
-                arr = replaceValues(arr, "$#"+queuedPositionsToGet[i], -1);
-            }
-            for (uint i = 0; i < arr.Length; i++) {
-                string item = arr[i];
-                if (item.SubStr(0,2) == "$#" && updLBs) {
-                    string posStr = item.SubStr(2);
-                    if (Text::TryParseInt(posStr, 0)) {
-                        int pos = Text::ParseInt(posStr);
-                        if (! positions.Exists(posStr) && queuedPositionsToGet.Find(pos) < 0) {
-                            queuedPositionsToGet.InsertLast(pos);
+                for (uint i = 0; i < positions.GetKeys().Length; i++) {
+                    string pos = positions.GetKeys()[i];
+                    int time = int(positions[pos]);
+                    arr = replaceValues(arr, "$#"+pos, time);
+                }
+                for (uint i = 0; i < queuedPositionsToGet.Length; i++) {
+                    arr = replaceValues(arr, "$#"+queuedPositionsToGet[i], -1);
+                }
+                for (uint i = 0; i < arr.Length; i++) {
+                    string item = arr[i];
+                    if (item.SubStr(0,2) == "$#" && updLBs) {
+                        string posStr = item.SubStr(2);
+                        if (Text::TryParseInt(posStr, 0)) {
+                            int pos = Text::ParseInt(posStr);
+                            if (! positions.Exists(posStr) && queuedPositionsToGet.Find(pos) < 0) {
+                                queuedPositionsToGet.InsertLast(pos);
+                            }
                         }
                     }
                 }
