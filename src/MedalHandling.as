@@ -3,6 +3,12 @@ enum SCORETYPE {
     Stunt,
     Platform,
 }
+
+enum MAPTYPE {
+    Unoffical,
+    TOTD,
+    Campaign,
+}
 class CMedal {
 
     string GetIcon() {
@@ -34,6 +40,44 @@ array<int> queuedPositionsToGet = {};
 dictionary positions = {};
 
 namespace MedalHandler {
+    void Auth(const string type) {
+        NadeoServices::AddAudience(type);
+
+        while (! NadeoServices::IsAuthenticated(type)) {
+            sleep(100);
+        }
+    }
+
+    MAPTYPE officalCampaignType() {
+        auto app = cast<CTrackMania>(GetApp());
+        auto track = app.RootMap;
+
+        if (app.RootMap is null) {
+            warn("Tried to get a time when no map was avaliable.");
+            return MAPTYPE::Unoffical;
+        }
+
+        Auth("NadeoLiveServices");
+
+        auto request = NadeoServices::Get("NadeoLiveServices", 'https://live-services.trackmania.nadeo.live/api/campaign/map/' + track.MapInfo.MapUid );
+        request.Start();
+
+        while (! request.Finished()) {
+            sleep(100);
+        }
+
+        auto json = request.Json();
+        int totd = json.Get("totdYear");
+        int campaign = json.Get("officalYear");
+        if (campaign > -1) {
+            return MAPTYPE::Campaign;
+        }
+        if (totd > -1) {
+            return MAPTYPE::TOTD;
+        }
+        return MAPTYPE::Unoffical;
+    }
+
     int getTimeAtPos(const int position) {
         if (position > 10000 || position < 1) {
             warn("Position invalid for request.");
@@ -47,12 +91,7 @@ namespace MedalHandler {
             return -1;
         }
 
-
-        NadeoServices::AddAudience("NadeoLiveServices");
-
-        while (! NadeoServices::IsAuthenticated("NadeoLiveServices")) {
-            sleep(100);
-        }
+        Auth("NadeoLiveServices");
 
         auto request = NadeoServices::Get("NadeoLiveServices", 'https://live-services.trackmania.nadeo.live/api/token/leaderboard/group/Personal_Best/map/' + track.MapInfo.MapUid + '/top?length=1&onlyWorld=true&offset=' + (position-1) );
         request.Start();
@@ -61,21 +100,15 @@ namespace MedalHandler {
             sleep(100);
         }
         int time = -1;
-        if (app.RootMap is null) {
-            warn("No map is avaliable to update the record for.");
-            return -1;
-        }
         auto mapInfo = track.MapInfo;
-        if (request.Finished()) {
-            auto reques = request.Json();
-            if (reques.HasKey("tops")) {
-                auto tops = reques.Get("tops");
-                if ((tops.Length > 0 ) ? tops[0].HasKey("top") : false) {
-                    auto top = tops[0].Get("top");
-                    if ((top.Length > 0 ) ? top[0].HasKey("score") : false) {
-                        auto keys = top[0].Get("score");
-                        time = keys;
-                    }
+        auto reques = request.Json();
+        if (reques.HasKey("tops")) {
+            auto tops = reques.Get("tops");
+            if ((tops.Length > 0 ) ? tops[0].HasKey("top") : false) {
+                auto top = tops[0].Get("top");
+                if ((top.Length > 0 ) ? top[0].HasKey("score") : false) {
+                    auto keys = top[0].Get("score");
+                    time = keys;
                 }
             }
         }
@@ -119,17 +152,21 @@ namespace MedalHandler {
         if (medal.Time < 0) {
             UI::BeginDisabled();
         }
-        UI::Text(icon);
-        UI::TableNextColumn();
-        UI::Text(medal.Name);
-        UI::TableNextColumn();
+        if (! HideIcon) {
+            UI::Text(icon);
+            UI::TableNextColumn();
+        }
+        if (! HideName) {
+            UI::Text(medal.Name);
+            UI::TableNextColumn();
+        }
         if (medal.Time < 0) {
             UI::Text("N/A");
         } else {
             UI::Text(FormatInt(medal.Time));
         }
-        UI::TableNextColumn();
-        if (! medal.IsPb && medal.Time >= 0) {
+        if (! medal.IsPb && medal.Time >= 0 && Pb.Time >= 0 && ! HideDelta) {
+            UI::TableNextColumn();
             int delta = medal.GetDeltaFromPb();
             UI::Text(FormatInt(delta, true));
         }
@@ -156,6 +193,9 @@ namespace MedalHandler {
                 updLBs = true;
             }
             auto mapInfo = track.MapInfo;
+            if (mapInfo is null) {
+                return;
+            }
             UpdateCurrentPb();
             Medals = {};
             Medals.InsertLast(Pb);
@@ -193,12 +233,7 @@ namespace MedalHandler {
             string mapTypeStr = string(challengeParams.MapType);
             auto scoreMgr = network.ClientManiaAppPlayground.ScoreMgr;
             auto userMgr = network.ClientManiaAppPlayground.UserMgr;
-            MwId userId;
-            if (userMgr.Users.Length > 0) {
-                userId = userMgr.Users[0].Id;
-            } else {
-                userId.Value = uint(-1);
-            }
+            auto userId = userId = userMgr.Users[0].Id;
             mapType = SCORETYPE::TimeAttack;
             string scope = "TimeAttack";
             if (track.MapInfo.TMObjective_NbClones > 0) {
