@@ -203,6 +203,7 @@ namespace OperationHandler {
                 positions.InsertLast(found);
             }
         }
+        positions.sortAsc();
         return positions;
     }
 
