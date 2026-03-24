@@ -7,7 +7,7 @@ void Main() {
 	DocsHandler::DocDynamicUpdate();
 	while (true) {
 		if (! Permissions::ViewRecords()) {
-			UI::ShowNotification("Custom Medals", "You can't use Custom Medals because you don't have Standard or Club Access.");
+			UI::ShowNotification("Custom Medals", "You can't use the plugin Custom Medals because you don't have Standard or Club Access.");
 			return;
 		}
 		auto app = cast<CTrackMania>(GetApp());
