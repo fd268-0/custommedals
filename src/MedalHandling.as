@@ -23,9 +23,6 @@ class CMedal {
     int GetDeltaFromPb() {
         return Pb.Time-Time;
     }
-    void UpdateExportTime() {
-        ExportHandler::UpdateExport(this);
-    }
     int Time = -1;
     string IconColor = "0ff";
     string Icon = "";
@@ -233,7 +230,7 @@ namespace MedalHandler {
             string mapTypeStr = string(challengeParams.MapType);
             auto scoreMgr = network.ClientManiaAppPlayground.ScoreMgr;
             auto userMgr = network.ClientManiaAppPlayground.UserMgr;
-            auto userId = userId = userMgr.Users[0].Id;
+            auto userId = userMgr.Users[0].Id;
             mapType = SCORETYPE::TimeAttack;
             string scope = "TimeAttack";
             if (track.MapInfo.TMObjective_NbClones > 0) {
