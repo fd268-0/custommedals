@@ -107,7 +107,7 @@ namespace SettingHandler {
         Medal.Icon = itemIcnValue;
         Medal.IconColor = itemIcnColValue;
         Medal.Name = itemNameValue;
-        Medal.Time = int(OperationHandler::arrayToAns(OperationHandler::stringToArray(itemEquValue)));
+        Medal.Time = int(OperationHandler::arrayToAns(itemEquValue));
         return Medal;
     }
 
@@ -220,6 +220,7 @@ namespace SettingHandler {
                 MedalHandler::UpdateAllTimes();
             }
             UI::Text("\\$999" + Icons::InfoCircle + " Check the Documentation for more information.");
+            UI::Text("\\$f00" + Icons::ExclamationCircle + " Work In Progress \\$900This plugin is a WIP! Expect issues as features are added.");
         } else {
             documents[documents.Length-1].generateDocumentUI();
             UI::Text("\\$999" + Icons::InfoCircle + " Create your first custom medal!");
