@@ -4,3 +4,27 @@ This plugin allows you to enter custom equations to create unique medals in Trac
 Find it on Openplanet under the name 'Custom Medals'.
 
 The assets/files contained in this github repository must not be used to train AI models.
+
+# Exports
+Added in v0.4.0 (not released yet.)
+Add `CustomMedals` as a dependency or optional dependency.
+
+### `string CustomMedals::GetCustomMedalsJson()`
+Returns a Json::Array value, stringifed.
+Each item in the Json::Array includes:
+- `time` 
+- `iconColor`
+- `icon`
+- `name`
+- `isImported` - Is it imported from any Import source (Map Imports)
+
+### `string CustomMedals::GetCustomMedalJson(string name)`
+Returns a Json::Object value, stringifed. It includes:
+- `time` 
+- `iconColor`
+- `icon`
+- `name`
+- `isImported` - Is it imported from any Import source (Map Imports)
+
+### `bool CustomMedals::HasCustomMedal(string name)`
+Returns weither a given custom medal exists.
