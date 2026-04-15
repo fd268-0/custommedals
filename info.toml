@@ -6,3 +6,4 @@ version     = "0.3.2"
 [script]
 dependencies = [ "NadeoServices" ]
 optional_dependencies = [ "WarriorMedals","UltimateMedalsExtended" ]
+exports = [ "src/Export.as" ]

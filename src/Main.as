@@ -2,6 +2,21 @@ void OnDestroyed() {
     ExportHandler::KillExports();
 }
 
+string GetCustomMedalsJson() {
+	auto customMedals = SettingHandler::GetCustomMedals();
+	Json::Value result = Json::Array();
+	for (uint i = 0; i < customMedals.Length; i++) {
+		Json::Value item = Json::Object();
+		item["name"] = customMedals[i].Name;
+		item["time"] = customMedals[i].Time;
+		item["iconColor"] = customMedals[i].IconColor;
+		item["icon"] = customMedals[i].Icon;
+		item["isPb"] = customMedals[i].IsPb;
+		result.Add(item);
+	}
+	return Json::Write(result);
+}
+
 void Main() {
 	SettingHandler::LoadSettings();
 	DocsHandler::DocDynamicUpdate();
