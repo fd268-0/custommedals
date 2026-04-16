@@ -29,8 +29,8 @@ Returns a Json::Object value, stringifed. It includes:
 ### `bool CustomMedals::HasCustomMedal(string name)`
 Returns weither a given custom medal exists.
 
-## To Do
-These exports are a WIP as of v0.4.0
+## Experimental
+These exports are experimental as of v0.4.0; they may / may not work
 
 ### `void CustomMedals::AddCustomVariable(string name, string value)`
 Adds a custom variable to CustomMedals.
