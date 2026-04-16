@@ -25,6 +25,7 @@ namespace ImportingHandler {
                 mMedal.Icon = params[0];
                 mMedal.Name = params[1];
                 mMedal.IconColor = "";
+                mMedal.Id = "map@" + i;
                 mMedal.IsImported = true;
                 MapImports.InsertLast(mMedal);
             }
