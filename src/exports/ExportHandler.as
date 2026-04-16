@@ -6,6 +6,7 @@ namespace CustomMedals {
         jsonMedal["iconColor"] = medal.IconColor;
         jsonMedal["icon"] = medal.Icon;
         jsonMedal["name"] = medal.Name;
+		jsonMedal["isPb"] = medal.IsPb;
         return jsonMedal;
     }
     Json::Value@ GetCustomMedal(const string name) {
