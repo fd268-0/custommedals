@@ -131,6 +131,9 @@ namespace SettingHandler {
         Medal.Name = itemNameValue;
         Medal.SecondaryIcon = string(jsonSettings[id + "_UME_SecondaryIcon"]);
         Medal.NameColor = string(jsonSettings[id + "_UME_NameColor"]);
+
+		Medal.Id = id;
+
         if (Medal.NameColor != "") {
             Medal.NameColor = "\\$" + Medal.NameColor;
         }
