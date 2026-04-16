@@ -17,15 +17,17 @@ Each item in the Json::Array includes:
 - `icon`
 - `name`
 - `isImported` - Is it imported from any Import source (Map Imports)
+- `isPb` - Is it the automatically generated Pb medal
 > Call `CustomMedals::Refresh` before using this if you changed anything!
 
 ### `string CustomMedals::GetCustomMedalJson(string name)`
-Returns a Json::Object value, stringifed. It includes:
+Returns a Json::Object value, stringifed. This returns the **first medal** with the name given. It includes:
 - `time` 
 - `iconColor`
 - `icon`
 - `name`
 - `isImported` - Is it imported from any Import source (Map Imports)
+- `isPb` - Is it the automatically generated Pb medal
 > Call `CustomMedals::Refresh` before using this if you changed anything!
 
 ### `bool CustomMedals::HasCustomMedal(string name)`
