@@ -41,3 +41,8 @@ Adds a custom variable to CustomMedals.
 ### `void CustomMedals::Refresh()`
 Reevaluates the equations for all medals. This isn't called with `CustomMedals::AddCustomVariable`!
 > This will cause performance issues if called every frame. Only use this when necessary.
+
+### `float CustomMedals::Calculate(string text)`
+Evaluates the text and returns the answer. Returns -2 if an error occured. Some variables return -1 if not avaliable.
+> This will cause performance issues if called every frame. Only use this when necessary.
+> Leaderboard positions will not load until the user presses Save in Medals. There will be no other workaround for this other then importing your own variable using `CustomMedals::AddCustomVariable`.
