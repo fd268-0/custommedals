@@ -10,8 +10,8 @@ Added in v0.4.0.
 Add `CustomMedals` as a dependency or optional dependency.
 
 ### `string CustomMedals::GetCustomMedalsJson()`
-Returns a Json::Array value, stringifed.
-Each item in the Json::Array includes:
+Returns a Json Array value, stringifed.
+Each Json Object value in the array includes:
 - `time` 
 - `iconColor`
 - `icon`
@@ -21,7 +21,7 @@ Each item in the Json::Array includes:
 > Call `CustomMedals::Refresh` before using this if you changed anything!
 
 ### `string CustomMedals::GetCustomMedalJson(string name)`
-Returns a Json::Object value, stringifed. This returns the **first medal** with the name given. It includes:
+Returns a Json Object value, stringifed. This returns the **first medal** with the name given. It includes:
 - `time` 
 - `iconColor`
 - `icon`
