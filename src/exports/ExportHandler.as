@@ -1,3 +1,8 @@
+enum FETCHTYPE {
+	Name,
+	Id
+}
+
 namespace CustomMedals {
     Json::Value@ CMedalToJson(const CMedal medal) {
         Json::Value@ jsonMedal = Json::Object();
@@ -7,12 +12,17 @@ namespace CustomMedals {
         jsonMedal["icon"] = medal.Icon;
         jsonMedal["name"] = medal.Name;
 		jsonMedal["isPb"] = medal.IsPb;
+		jsonMedal["id"] = medal.Id;
         return jsonMedal;
     }
-    Json::Value@ GetCustomMedal(const string name) {
-        Json::Value@ jsonMedal = Json::Object();
+    Json::Value@ GetCustomMedal(const string name, const FETCHTYPE fetchtype) {
+        Json::Value@ jsonMedal = Json::Object();oo
         for (uint i = 0; i < Medals.Length; i++) {
-            if (Medals[i].Name != name) {
+			string fetchValue = Medals[i].Name;
+			if (fetchtype == FETCHTYPE::Id) {
+				fetchValue = Medals[i].Id;
+			}
+            if (fetchValue != name) {
                 continue;
             }
             jsonMedal = CMedalToJson(Medals[i]);
@@ -29,6 +39,7 @@ namespace CustomMedals {
         }
         return jsonMedals;
     }
+	// forgot HasCustomMedal, will be included later
     void Refresh() {
         ImportingHandler::GetMapImports();
 		MedalHandler::UpdateAllTimes();
