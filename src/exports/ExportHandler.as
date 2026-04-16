@@ -16,7 +16,7 @@ namespace CustomMedals {
         return jsonMedal;
     }
     Json::Value@ GetCustomMedal(const string name, const FETCHTYPE fetchtype) {
-        Json::Value@ jsonMedal = Json::Object();oo
+        Json::Value@ jsonMedal = Json::Object();
         for (uint i = 0; i < Medals.Length; i++) {
 			string fetchValue = Medals[i].Name;
 			if (fetchtype == FETCHTYPE::Id) {
