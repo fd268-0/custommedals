@@ -6,7 +6,7 @@ Find it on Openplanet under the name 'Custom Medals'.
 The assets/files contained in this github repository must not be used to train AI models.
 
 # Exports
-Added in v0.4.0 (not released yet.)
+Added in v0.4.0.
 Add `CustomMedals` as a dependency or optional dependency.
 
 ### `string CustomMedals::GetCustomMedalsJson()`
