@@ -17,6 +17,7 @@ Each item in the Json::Array includes:
 - `icon`
 - `name`
 - `isImported` - Is it imported from any Import source (Map Imports)
+> Call `CustomMedals::Refresh` before using this if you changed anything!
 
 ### `string CustomMedals::GetCustomMedalJson(string name)`
 Returns a Json::Object value, stringifed. It includes:
@@ -25,6 +26,7 @@ Returns a Json::Object value, stringifed. It includes:
 - `icon`
 - `name`
 - `isImported` - Is it imported from any Import source (Map Imports)
+> Call `CustomMedals::Refresh` before using this if you changed anything!
 
 ### `bool CustomMedals::HasCustomMedal(string name)`
 Returns weither a given custom medal exists.
@@ -34,7 +36,7 @@ These exports are experimental as of v0.4.0; they may / may not work
 
 ### `void CustomMedals::AddCustomVariable(string name, string value)`
 Adds a custom variable to CustomMedals.
-> The name of the variable usable in CustomMedals will be `#variable_name`. This is to prevent user-defined variables being overwritten.
+> The name of the variable usable in CustomMedals will be `#name`. This is to prevent user-defined variables being overwritten.
 
 ### `void CustomMedals::Refresh()`
 Reevaluates the equations for all medals. This isn't called with `CustomMedals::AddCustomVariable`!
