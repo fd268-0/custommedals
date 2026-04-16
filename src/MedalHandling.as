@@ -33,6 +33,7 @@ class CMedal {
     string Name = "";
     string SecondaryIcon = "";
     string NameColor = "";
+	string Id = "";
     array<string> Parameters = {};
     bool IsPb = false;
     bool IsImported = false;
