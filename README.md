@@ -35,11 +35,11 @@ Returns weither a given custom medal exists.
 These exports are experimental as of v0.4.0; they may / may not work
 
 ### `void CustomMedals::AddCustomVariable(string name, string value)`
-Adds a custom variable to CustomMedals.
-> The name of the variable usable in CustomMedals will be `#name`. This is to prevent user-defined variables being overwritten.
+Adds a custom variable to CustomMedals, usable in medals and in `CustomMedals::Calculate`.
+> The name of the variable usable in CustomMedals will be `#name`. This is to prevent user-defined variables being overwritten. This doesn't call `CustomMedals::Refresh`!
 
 ### `void CustomMedals::Refresh()`
-Reevaluates the equations for all medals. This isn't called with `CustomMedals::AddCustomVariable`!
+Reevaluates the equations for all medals. 
 > This will cause performance issues if called every frame. Only use this when necessary.
 
 ### `float CustomMedals::Calculate(string text)`
