@@ -34,8 +34,6 @@ dictionary medalDefaults = {
     {"_Params",""}
 };
 
-// fix final three showing null
-
 dictionary icons = Icons::GetAll();
 
 bool iconSelOpen = false;
@@ -45,6 +43,14 @@ bool saved = true;
 
 string idSel = "";
 
+class CInputStrReturn {
+    CInputStrReturn(const bool changedtxt, const string returned) {
+        changed = changedtxt;
+        newText = returned;
+    }
+    bool changed = false;
+    string newText = "";
+}
 
 namespace SettingHandler {
     dictionary jsonSettings = {};
@@ -131,9 +137,7 @@ namespace SettingHandler {
         Medal.Name = itemNameValue;
         Medal.SecondaryIcon = string(jsonSettings[id + "_UME_SecondaryIcon"]);
         Medal.NameColor = string(jsonSettings[id + "_UME_NameColor"]);
-
-		Medal.Id = id;
-
+        Medal.Id = id;
         if (Medal.NameColor != "") {
             Medal.NameColor = "\\$" + Medal.NameColor;
         }
@@ -142,7 +146,7 @@ namespace SettingHandler {
         return Medal;
     }
 
-    bool InputStr(const string id, const string name, const string current, const int&in width = 150) {
+    CInputStrReturn InputStr(const string id, const string name, const string current, const int&in width = 150) {
         bool exit = false;
         UI::Text(name);
         UI::PushID(id);
@@ -150,8 +154,10 @@ namespace SettingHandler {
         string ctext = UI::InputText("", current, exit);
         UI::PopItemWidth();
         UI::PopID();
-        jsonSettings[id] = ctext; 
-        return exit;
+        if (id != "") {
+            jsonSettings[id] = ctext; 
+        }
+        return CInputStrReturn(exit, ctext);
     }
 
     [SettingsTab name="Medals"]
@@ -197,9 +203,9 @@ namespace SettingHandler {
             }
             UI::PopID();
             UI::TableNextColumn();
-            c1 = InputStr(itemName, "Medal Name", itemNameValue);
+            c1 = InputStr(itemName, "Medal Name", itemNameValue).changed;
             UI::TableNextColumn();
-            c2 = InputStr(itemEqu, "Medal Equation", itemEquValue);
+            c2 = InputStr(itemEqu, "Medal Equation", itemEquValue).changed;
             UI::TableNextColumn();
             UI::Text("Icon");
             UI::SameLine();
@@ -212,9 +218,9 @@ namespace SettingHandler {
             UI::PopItemWidth();
             UI::PopID();
             UI::TableNextColumn();
-            c4 = InputStr(itemIcnCol, "Color \\$"+itemIcnColValue+""+itemIcnValue+ "\\$fff ", itemIcnColValue, 50);
+            c4 = InputStr(itemIcnCol, "Color \\$"+itemIcnColValue+""+itemIcnValue+ "\\$fff ", itemIcnColValue, 50).changed;
             
-            bool c5 = false;
+            bool changedAdv = false;
             if (idSel == itemName && idSel != "") {
                 auto overlayIconVal = string(SettingHandler::jsonSettings[itemName + "_UME_SecondaryIcon"]);
                 auto nameColorVal = string(SettingHandler::jsonSettings[itemName + "_UME_NameColor"]);
@@ -228,14 +234,14 @@ namespace SettingHandler {
                         UI::Text("\\$ff0equation calculation may have failed");
                     }
 #if DEPENDENCY_ULTIMATEMEDALSEXTENDED
-                    c5 = c5 || SettingHandler::InputStr(itemName+"_UME_NameColor", "UME Name Color \\$"+nameColorVal+Icons::Circle, nameColorVal, 250);
+                    changedAdv = changedAdv || SettingHandler::InputStr(itemName+"_UME_NameColor", "UME Name Color \\$"+nameColorVal+Icons::Circle, nameColorVal, 250).changed;
 #endif 
                     Controls::BeginFrame(""+Icons::ExclamationTriangle+" Experimental Settings Ahead", true, vec4(0.5,0,0,0.5));
                     UI::Text("\\$f99Expect bugs and issues.");
 #if DEPENDENCY_ULTIMATEMEDALSEXTENDED
-                    c5 = c5 || SettingHandler::InputStr(itemName+"_UME_SecondaryIcon", "UME Overlay Icon "+overlayIconVal, overlayIconVal, 80);
+                    changedAdv = changedAdv || SettingHandler::InputStr(itemName+"_UME_SecondaryIcon", "UME Overlay Icon "+overlayIconVal, overlayIconVal, 80).changed;
 #endif 
-                    c5 = c5 || SettingHandler::InputStr(itemName+"_Params", "Parameters", paramsVal, 220);
+                    changedAdv = changedAdv || SettingHandler::InputStr(itemName+"_Params", "Parameters", paramsVal, 220).changed;
                     Controls::EndFrame();
                     if (UI::Button("Close")) { idSel = ""; }
                 }
@@ -265,7 +271,7 @@ namespace SettingHandler {
 
     
 
-            if (c1 || c2 || c3 || c4 || c5) {
+            if (c1 || c2 || c3 || c4 || changedAdv) {
                 MedalHandler::UpdateAllTimes();
                 saved = false;
             }
