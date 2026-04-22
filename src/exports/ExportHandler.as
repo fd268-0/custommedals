@@ -8,17 +8,17 @@ namespace CustomMedals {
         Json::Value@ jsonMedal = Json::Object();
         jsonMedal["time"] = medal.Time;
         jsonMedal["isImported"] = medal.IsImported;
+        jsonMedal["isPb"] = medal.IsPb;
         jsonMedal["iconColor"] = medal.IconColor;
         jsonMedal["icon"] = medal.Icon;
         jsonMedal["name"] = medal.Name;
-		jsonMedal["isPb"] = medal.IsPb;
-		jsonMedal["id"] = medal.Id;
+        jsonMedal["id"] = medal.Id;
         return jsonMedal;
     }
-    Json::Value@ GetCustomMedal(const string name, const FETCHTYPE fetchtype) {
+    Json::Value@ GetCustomMedal(const string name, const FETCHTYPE&in fetchtype = FETCHTYPE::Name) {
         Json::Value@ jsonMedal = Json::Object();
         for (uint i = 0; i < Medals.Length; i++) {
-			string fetchValue = Medals[i].Name;
+            string fetchValue = Medals[i].Name;
 			if (fetchtype == FETCHTYPE::Id) {
 				fetchValue = Medals[i].Id;
 			}
@@ -37,9 +37,14 @@ namespace CustomMedals {
             }
             jsonMedals.Add(CMedalToJson(Medals[i]));
         }
-        return jsonMedals;
+        return Json::Write(jsonMedals);
     }
-	// forgot HasCustomMedal, will be included later
+    string GetCustomMedalJson(const string name) {
+        return Json::Write(GetCustomMedal(name));
+    }
+    bool HasCustomMedal(const string name) {
+        return Json::Write(GetCustomMedal(name)["name"]) != "null";
+    }
     void Refresh() {
         ImportingHandler::GetMapImports();
 		MedalHandler::UpdateAllTimes();
