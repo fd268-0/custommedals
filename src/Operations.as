@@ -6,6 +6,7 @@ enum OPERTYPE {
     Unknown,
     Special,
 }
+
 namespace OperationHandler {
     bool escape = false;
     int iter = 0;

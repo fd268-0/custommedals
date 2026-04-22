@@ -54,58 +54,68 @@ void Main() {
 	}
 }
 
+void RenderIconsMenu() {
+	int iflags = UI::WindowFlags::NoCollapse;
+	UI::SetNextWindowSize(430,500);
+	if (UI::Begin("\\$09fClick To Copy Icon", iflags)) {
+		iconSelSearch = UI::InputText("  "+Icons::Search, iconSelSearch);
+		UI::SameLine();
+		if (UI::ButtonColored("Close", 0, 0.5, 0.5)) {
+			iconSelOpen = false;
+		}
+		if (UI::BeginTable("ICTable", 10, UI::TableFlags::SizingFixedFit)) {
+			auto keys = icons.GetKeys();
+			for (uint i = 0; i < keys.Length; i++) {
+				auto iconName = keys[i];
+				if (! iconName.Contains(iconSelSearch)) {
+					continue;
+				}
+				UI::TableNextColumn();
+				string icon = string(icons[iconName]);
+				if (UI::ButtonColored(icon, 0, 0, 0)) {
+					IO::SetClipboard(icon);
+					UI::ShowNotification("Custom Medals", "Copied "+ icon + " to clipboard.");
+				}
+			}
+			UI::EndTable();
+		}
+	}
+	UI::End();
+}
+
 void Render() {
 	if (! Permissions::ViewRecords()) {
 		return;
 	}
-	// advanced menu
 	if (iconSelOpen) {
-		int iflags = UI::WindowFlags::NoCollapse;
-		UI::SetNextWindowSize(430,500);
-		if (UI::Begin("\\$09fClick To Copy Icon", iflags)) {
-			iconSelSearch = UI::InputText("  "+Icons::Search, iconSelSearch);
-			UI::SameLine();
-			if (UI::ButtonColored("Close", 0, 0.5, 0.5)) {
-				iconSelOpen = false;
-			}
-			if (UI::BeginTable("ICTable", 10, UI::TableFlags::SizingFixedFit)) {
-				auto keys = icons.GetKeys();
-				for (uint i = 0; i < keys.Length; i++) {
-					auto iconName = keys[i];
-					if (! iconName.Contains(iconSelSearch)) {
-						continue;
-					}
-					UI::TableNextColumn();
-					string icon = string(icons[iconName]);
-					if (UI::ButtonColored(icon, 0, 0, 0)) {
-						IO::SetClipboard(icon);
-						UI::ShowNotification("Custom Medals", "Copied "+ icon + " to clipboard.");
-					}
-				}
-				UI::EndTable();
-			}
-		}
-		UI::End();
+		RenderIconsMenu();
 	}
 	if (MedalHandler::GetVisiblity() == false) {
 		return;
 	}
 	int flags = UI::WindowFlags::NoTitleBar | UI::WindowFlags::NoCollapse | UI::WindowFlags::AlwaysAutoResize;
 	if (UI::Begin("CustomMedalsWindow", flags)) {
-		int ams = MedalHandler::getMedalTableSize();
-		if (UI::BeginTable("CMTable", ams, UI::TableFlags::SizingFixedFit)) {
-			for (uint i = 0; i < Medals.Length; i++) {
-				CMedal medal = Medals[i];
-				if (medal.Time < 0 && HideNA) {
-					continue;
-				}
-				if (HidePB && medal.IsPb) {
-					continue;
-				}
-				UI::TableNextRow();
-				MedalHandler::RenderTime(medal);
+		if (Medals.Length <= 1) {
+			UI::Text("Create your first medal!");
+			if (UI::Button("Create")) {
+				Meta::OpenSettings();
 			}
-			UI::EndTable();
+		} else {
+			int ams = MedalHandler::getMedalTableSize();
+			if (UI::BeginTable("CMTable", ams, UI::TableFlags::SizingFixedFit)) {
+				for (uint i = 0; i < Medals.Length; i++) {
+					CMedal medal = Medals[i];
+					if (medal.Time < 0 && HideNA) {
+						continue;
+					}
+					if (HidePB && medal.IsPb) {
+						continue;
+					}
+					UI::TableNextRow();
+					MedalHandler::RenderTime(medal);
+				}
+				UI::EndTable();
+			}
 		}
 	}
 	UI::End();

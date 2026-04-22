@@ -1,5 +1,13 @@
 namespace ImportingHandler {
     array<CMedal> MapImports = {};
+    string MapImportToStr() {
+        array<string> mdlStrs = {};
+        for (uint i = 0; i < MapImports.Length; i++) {
+            CMedal medal = MapImports[i];
+            mdlStrs.InsertLast(medal.Icon+","+medal.Name+","+medal.Time);
+        }
+        return string::Join(mdlStrs,";");
+    }
     void GetMapImports() {
         auto app = cast<CTrackMania>(GetApp());
         auto track = app.RootMap;
@@ -25,8 +33,8 @@ namespace ImportingHandler {
                 mMedal.Icon = params[0];
                 mMedal.Name = params[1];
                 mMedal.IconColor = "";
-                mMedal.Id = "map@" + i;
                 mMedal.IsImported = true;
+                mMedal.Id = "map@" + i;
                 MapImports.InsertLast(mMedal);
             }
         }
