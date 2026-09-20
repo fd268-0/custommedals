@@ -112,6 +112,9 @@ namespace OnlineHandler {
     }
 
     void getTimesFromUser(const array<string> userIds) {
+        for (uint i = 0; i < userIds.Length; i++) {
+            accountIdList[userIds[i]] = -1;
+        }
         auto app = cast<CTrackMania>(GetApp());
         auto track = app.RootMap;
 

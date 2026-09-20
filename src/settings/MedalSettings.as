@@ -37,7 +37,7 @@ namespace MedalSettings {
             MedalHandler::AddMedal(CMedal());
         }
         UI::SameLine();
-        if (UI::ButtonColored("Save & Recaculate", 0.6)) {
+        if (UI::ButtonColored("Save & Recalculate", 0.6)) {
             MedalHandler::UpdateValues();
         }
         if (UI::ButtonColored("Add PB Template", 0.9)) {

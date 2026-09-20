@@ -43,7 +43,7 @@ array<CDocument@> documents = {
     @CDocument("$VALIDATE","$VALIDATE returns the Map.ChallengeParameters.RaceValidateGhost.RaceTime (integer), or -1 if not found.\n\\$999Restrictions: The map must be validated with a ghost in the Winter 2026 update or later. Note: This can be used as an alternative for the $AT.",{"Variable"}),
     @CDocument("lerp(min, max, x)","Interpolates linearly the resulting value based on \\$0f0x\\$fff, in-between \\$0f0min\\$fff and \\$0f0max\\$fff.",{"Function"}),
     @CDocument("Parameters","Parameters can be edited in the advanced settings. Use commas to seperate parameters. Parameters are used to modify the operation handling and display.\n\\$fffanyvar \\$999Allows the use of any string as a variable.\n\\$fffcoperators \\$999Testing text detection for future logic addition.\n\\$fffnoexport \\$999Disables exports to UME and other plugins.",{"Experimental"}),
-    @CDocument("Examples","Here's some examples of what you can make:",{})
+    @CDocument("Examples","Here's some examples of what you can make:\n$WT > 0 ? lerp($AT, $WT, 0.5) : -1 \\$999Sets it to halfway inbetween $AT and $WT if $WT exists.",{})
 };
 
 

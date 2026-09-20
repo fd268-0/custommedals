@@ -19,8 +19,6 @@ class CVariable {
             Processing = false;
             Completed = true;
             VariablesUpdated();
-        } else {
-            Value = -1;
         }
     }
 

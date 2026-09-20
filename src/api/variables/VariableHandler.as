@@ -79,6 +79,7 @@ namespace VariableHandler {
 
     void ForceUpdates() {
         sinceLastVariableReload = 0;
+        OnlineHandler::requestsSubmitted = 0;
         startnew(ForceUpdatesAsync);
     }
 

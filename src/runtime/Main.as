@@ -5,6 +5,7 @@ void Main() {
         UI::ShowNotification("Custom Medals", "You can't use Custom Medals because you don't have Standard or Club Access.");
 		return;
 	}
+    DocsHandler::DocDynamicUpdate();
     VariableHandler::LoadVariables();
     MedalHandler::LoadMedals();
 
@@ -28,6 +29,8 @@ void Main() {
 
 void OnDestroyed() {
     ExportHandler::KillExports();
+    VariableHandler::SaveVariables();
+    MedalHandler::SaveMedals();
 }
 
 float sinceLastVariableReload = 0;
