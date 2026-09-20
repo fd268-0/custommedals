@@ -1,4 +1,27 @@
 namespace VariableSettings {
+    enum RELOADINTERVAL {
+        Per120s,
+        Per300s,
+        Per900s,
+        Never,
+    }
+
+    RELOADINTERVAL IntervalComboBox(const string label, RELOADINTERVAL currentInt) {
+        RELOADINTERVAL current = RELOADINTERVAL(currentInt);
+        UI::PushItemWidth(200);
+        if (UI::BeginCombo(label, tostring(current))) {
+            for (uint i = 0; i <= RELOADINTERVAL::Never; i++) {
+                string enumName = tostring(RELOADINTERVAL(i));
+                if (UI::Selectable(enumName, enumName == tostring(current))) {
+                    current = RELOADINTERVAL(i);
+                }
+            }
+            UI::EndCombo();
+        }
+        UI::PopItemWidth();
+        return current;
+    }
+
     [SettingsTab name="Variables" order="3"]
     void RenderVariables() {
         if (! Permissions::ViewRecords()) {
@@ -36,7 +59,8 @@ namespace VariableSettings {
             VariableHandler::UpdateValues();
         }
         UI::SameLine();
-        if (UI::ButtonColored("Recalculate All", 0)) {
+        if (UI::ButtonColored("Save & Recalculate", 0)) {
+            VariableHandler::SaveVariables();
             VariableHandler::ResetValues();
             VariableHandler::UpdateValues();
         }
@@ -52,5 +76,8 @@ namespace VariableSettings {
         } else {
             UI::Text("\\$f00" + Icons::TimesCircle + " Request limit reached! Try sending less requests.");
         }
+        UI::Separator();
+        ReloadInterval = IntervalComboBox("Recalculation Interval", ReloadInterval);
+        UI::Text(Icons::ClockO + " " + Math::Floor(sinceLastVariableReload/1000.0) + "s");
     }
 }

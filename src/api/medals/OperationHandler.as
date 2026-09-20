@@ -363,7 +363,7 @@ namespace OperationHandler {
         return numAns;
     }
 
-    string arrayToAnsSingular(const array<string> curarr, const dictionary variables, const array<string>&in params = {}) {
+    string arrayToAnsSingular(const array<string> curarr, const dictionary variables = {}, const array<string>&in params = {}) {
         array<string> arr = arrayToArr(curarr, variables, params);
         return Text::Join(arr,"");
     }

@@ -41,7 +41,7 @@ namespace CustomMedals {
         return Json::Write(GetCustomMedal(name)["name"]) != "null";
     }
     void Refresh() {
-        // WIP
+        MedalHandler::UpdateValues();
     }
     void AddCustomVariable(const string name, const string value) {
         OperationHandler::globalVariables["#" + name] = value;

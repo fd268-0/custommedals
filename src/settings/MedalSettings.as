@@ -43,6 +43,7 @@ namespace MedalSettings {
         if (UI::ButtonColored("Add PB Template", 0.9)) {
             MedalHandler::CreatePbTemplate();
         }
+        UI::Separator();
         UI::PushFontSize(24);
         UI::Text("Quick Reference");
         UI::PopFontSize();

@@ -3,11 +3,15 @@ namespace VariableHandler {
 
     enum VARIABLETYPE {
         Leaderboard,
+        CampaignType,
+        PlayerRecord,
         Number,
     }
 
     array<string> prefixes = {
         "Position",
+        "",
+        "Account ID",
         "float",
     };
 
@@ -26,6 +30,7 @@ namespace VariableHandler {
     }
 
     void ResetValues() {
+        sinceLastVariableReload = 0;
         OnlineHandler::requestsSubmitted = 0;
         for (uint i = 0; i < variables.Length; i++) {
             variables[i].Completed = false;
@@ -45,7 +50,25 @@ namespace VariableHandler {
 
     void UpdateValuesAsync() {
         for (uint i = 0; i < variables.Length; i++) {
+            if (variables[i].Type == VariableHandler::VARIABLETYPE::PlayerRecord) {
+                 variables[i].UpdateValue();
+            }
+        }
+        for (uint i = 0; i < variables.Length; i++) {
             variables[i].UpdateValue();
+        }
+    }
+
+    void ForceUpdatesAsync() {
+        for (uint i = 0; i < variables.Length; i++) {
+            if (variables[i].Type == VariableHandler::VARIABLETYPE::PlayerRecord) {
+                variables[i].ForceUpdate();
+            }
+        }
+        for (uint i = 0; i < variables.Length; i++) {
+            if (variables[i].Type != VariableHandler::VARIABLETYPE::PlayerRecord) {
+                variables[i].ForceUpdate();
+            }
         }
     }
 
@@ -53,6 +76,13 @@ namespace VariableHandler {
     void UpdateValues() {
         startnew(UpdateValuesAsync);
     }
+
+    void ForceUpdates() {
+        sinceLastVariableReload = 0;
+        startnew(ForceUpdatesAsync);
+    }
+
+
 
     void AddVariable(const CVariable variable) {
         variables.InsertLast(variable);

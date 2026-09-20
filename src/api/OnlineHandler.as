@@ -7,6 +7,8 @@ enum MAPTYPE {
 }
 
 namespace OnlineHandler {
+    string mapId = "";
+    dictionary accountIdList = {};
     int requestsSubmitted = 0;
     void Auth(const string type) {
         NadeoServices::AddAudience(type);
@@ -62,17 +64,104 @@ namespace OnlineHandler {
         }
 
         auto json = Get('https://live-services.trackmania.nadeo.live/api/campaign/map/' + track.MapInfo.MapUid );
-        int totd = json.Get("totdYear");
-        int campaign = json.Get("officalYear");
-        if (campaign > -1) {
-            return MAPTYPE::Campaign;
+        if (json.HasKey("totdYear")) {
+            int totd = json.Get("totdYear");
+            if (totd > -1) {
+                return MAPTYPE::TOTD;
+            }
         }
-        if (totd > -1) {
-            return MAPTYPE::TOTD;
+        if (json.HasKey("officalYear")) {
+            int campaign = json.Get("officalYear");
+            if (campaign > -1) {
+                return MAPTYPE::Campaign;
+            }
         }
         return MAPTYPE::Unoffical;
     }
 
+    void getMapId() {
+        if (mapId != "") {
+            return;
+        }
+        auto app = cast<CTrackMania>(GetApp());
+        auto track = app.RootMap;
+
+        if (app.RootMap is null) {
+            warn("Tried to get id when no map was avaliable.");
+            return;
+        }
+
+        auto reques = Get("https://prod.trackmania.core.nadeo.online/maps/by-uid/?mapUidList=" + track.MapInfo.MapUid);
+        if ((reques.Length > 0 ) ? reques[0].HasKey("mapId") : false) {
+            mapId = reques[0].Get("mapId");
+        }
+    }
+
+    void UpdatePlayerRecords() {
+        array<string> updating = {};
+        for (uint i = 0; i < accountIdList.GetKeys().Length; i++) {
+            string key = accountIdList.GetKeys()[i];
+            int val = int(accountIdList[key]);
+            if (val == -2) {
+                updating.InsertLast(key);
+            }
+        }
+        if (updating.Length > 0) {
+            getTimesFromUser(updating);
+        }
+    }
+
+    void getTimesFromUser(const array<string> userIds) {
+        auto app = cast<CTrackMania>(GetApp());
+        auto track = app.RootMap;
+
+        if (app.RootMap is null) {
+            warn("Tried to get a time when no map was avaliable.");
+            return;
+        }
+
+        OnlineHandler::getMapId();
+
+        string scope = Records::GetScope();
+
+        auto mapInfo = track.MapInfo;
+        auto reques = Get('https://prod.trackmania.core.nadeo.online/v2/mapRecords/by-account/?accountIdList=' + Text::Join(userIds, ",") + "&mapId=" + mapId + '&gameMode=' + scope);
+        for (uint i = 0; i < reques.Length; i++) {
+            if (!reques[i].HasKey("recordScore")) {
+                continue;
+            }
+            int time = -1;
+            auto record = reques[i].Get("recordScore");
+            if (scope == "Stunt") {
+                time = record.Get("score");
+            } else if (scope == "Platform") {
+                time = record.Get("respawnCount");
+            } else {
+                time = record.Get("time");
+            }
+            accountIdList[reques[i].Get("accountId")] = time;
+        }
+    
+    }
+
+
+    int getTimeFromUser(const string userId) {
+        auto app = cast<CTrackMania>(GetApp());
+        auto track = app.RootMap;
+
+        if (app.RootMap is null) {
+            warn("Tried to get a time when no map was avaliable.");
+            return -1;
+        }
+
+        accountIdList[userId] = -2;
+
+        while (int(accountIdList[userId]) == -2) {
+            yield();
+        }
+        return int(accountIdList[userId]);
+    }
+ 
     int getTimeAtPos(const int position) {
         if (position > 10000 || position < 1) {
             warn("Position invalid for request.");

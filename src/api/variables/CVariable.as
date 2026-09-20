@@ -5,13 +5,17 @@ class CVariable {
             return;
         }
         Processing = true;
-        float Paramater = Text::ParseFloat(Parameter);
+        float FloatParam = OperationHandler::arrayToAns(Parameter);
         if (Type == VariableHandler::VARIABLETYPE::Number) {
-            Value = int(Paramater);
+            Value = int(FloatParam);
         } else if (Type == VariableHandler::VARIABLETYPE::Leaderboard) {
-            Value = OnlineHandler::getTimeAtPos(int(Paramater));
+            Value = OnlineHandler::getTimeAtPos(int(FloatParam));
+        } else if (Type == VariableHandler::VARIABLETYPE::CampaignType) {
+            Value = OnlineHandler::officalCampaignType();
+        } else if (Type == VariableHandler::VARIABLETYPE::PlayerRecord) {
+            Value = OnlineHandler::getTimeFromUser(Parameter);
         }
-        if (Processing && Value >= 0) {
+        if (Processing) {
             Processing = false;
             Completed = true;
             VariablesUpdated();
@@ -22,7 +26,11 @@ class CVariable {
 
     void UpdateValue() {
         if (!Completed and !Processing) {
-            ForceUpdate();
+            if (Type == VariableHandler::VARIABLETYPE::PlayerRecord) {
+                VariableHandler::ForceUpdate(this);
+            } else {
+                ForceUpdate();
+            }
         } else {
             OperationHandler::globalVariables[Name] = Value + "";
         }
@@ -50,7 +58,14 @@ class CVariable {
         UI::Text("\\$999" + VariableHandler::prefixes[int(Type)]);
 
         UI::TableNextColumn();
-        InputResult ParameterResult = UIR::InputText(250, idpre + "params", "", Parameter);
+        if (VariableHandler::prefixes[int(Type)] == "") {
+            UI::BeginDisabled();
+            UIR::InputText(250, idpre + "params", "", "\\$990No parameter.");
+            UI::EndDisabled();
+        } else {
+            InputResult ParameterResult = UIR::InputText(250, idpre + "params", "", Parameter);
+            Parameter = ParameterResult.string;
+        }
 
         UI::PushID(idpre+"Del");
         UI::TableNextColumn();
@@ -74,7 +89,6 @@ class CVariable {
             UI::Text("\\$f00" + Icons::CircleO + "Unprocessed");
         }
 
-        Parameter = ParameterResult.string;
         Name = NameResult.string;
     }
 
