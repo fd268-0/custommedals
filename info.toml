@@ -1,0 +1,9 @@
+[meta]
+name        = "Custom Medals"
+author      = "fd268"
+category    = "Race"
+version     = "0.9.0"
+[script]
+dependencies = [ "NadeoServices","Controls" ]
+optional_dependencies = [ "WarriorMedals","UltimateMedalsExtended" ]
+exports = [ "src/external/Exports.as" ]
