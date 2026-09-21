@@ -28,8 +28,20 @@ namespace OnlineHandler {
         return request;
     }
 
+    float GetRequestSubmittedRatio() {
+        float max = 20;
+        if (ReloadInterval == VariableSettings::RELOADINTERVAL::Per120s) {
+            max = 10;
+        }
+        if (ReloadInterval == VariableSettings::RELOADINTERVAL::Per300s) {
+            max = 15;
+        }
+        return float(OnlineHandler::requestsSubmitted)/max;
+    }
+
     Json::Value@ Get(const string url) {
-        if (OnlineHandler::requestsSubmitted >= 10) {
+        if (GetRequestSubmittedRatio() >= 1.0) {
+            warn("Hit request limit!");
             return Json::Object();
         }
         if (OnlineHandler::requestsSubmitted > 1) {
@@ -92,6 +104,10 @@ namespace OnlineHandler {
         }
 
         auto reques = Get("https://prod.trackmania.core.nadeo.online/maps/by-uid/?mapUidList=" + track.MapInfo.MapUid);
+        if (reques.GetType() != Json::Type::Array) {
+            warn("Returned value is not an array.");
+            return;
+        }
         if ((reques.Length > 0 ) ? reques[0].HasKey("mapId") : false) {
             mapId = reques[0].Get("mapId");
         }
@@ -112,9 +128,6 @@ namespace OnlineHandler {
     }
 
     void getTimesFromUser(const array<string> userIds) {
-        for (uint i = 0; i < userIds.Length; i++) {
-            accountIdList[userIds[i]] = -1;
-        }
         auto app = cast<CTrackMania>(GetApp());
         auto track = app.RootMap;
 
@@ -129,6 +142,13 @@ namespace OnlineHandler {
 
         auto mapInfo = track.MapInfo;
         auto reques = Get('https://prod.trackmania.core.nadeo.online/v2/mapRecords/by-account/?accountIdList=' + Text::Join(userIds, ",") + "&mapId=" + mapId + '&gameMode=' + scope);
+        for (uint i = 0; i < userIds.Length; i++) {
+            accountIdList[userIds[i]] = -1;
+        }
+        if (reques.GetType() != Json::Type::Array) {
+            warn("Returned value is not an array.");
+            return;
+        }
         for (uint i = 0; i < reques.Length; i++) {
             if (!reques[i].HasKey("recordScore")) {
                 continue;
@@ -159,15 +179,44 @@ namespace OnlineHandler {
 
         accountIdList[userId] = -2;
 
-        while (int(accountIdList[userId]) == -2) {
+        while (int(accountIdList[userId]) < -1) {
             yield();
         }
         return int(accountIdList[userId]);
     }
+
+    int getPositionOfTime(int time = -1) {
+        if (time < 0) {
+            time = Records::Pb;
+        }
+        auto app = cast<CTrackMania>(GetApp());
+        auto track = app.RootMap;
+
+        if (app.RootMap is null) {
+            warn("Tried to get a time when no map was avaliable.");
+            return -1;
+        }
+
+        int pos = -1;
+        auto mapInfo = track.MapInfo;
+        auto reques = Get('https://live-services.trackmania.nadeo.live/api/token/leaderboard/group/Personal_Best/map/' + track.MapInfo.MapUid + "/surround/0/0?score=" + time + '&onlyWorld=true');
+        
+        if (reques.HasKey("tops")) {
+            auto tops = reques.Get("tops");
+            if ((tops.Length > 0 ) ? tops[0].HasKey("top") : false) {
+                auto top = tops[0].Get("top");
+                if ((top.Length > 0 ) ? top[0].HasKey("position") : false) {
+                    auto keys = top[0].Get("position");
+                    pos = keys;
+                }
+            }
+        }
+        return pos;
+    }
  
     int getTimeAtPos(const int position) {
         if (position > 10000 || position < 1) {
-            warn("Position invalid for request.");
+            warn("Position invalid for request. Position: " + position);
             return -1;
         }
         auto app = cast<CTrackMania>(GetApp());

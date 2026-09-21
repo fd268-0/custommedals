@@ -139,13 +139,21 @@ class CMedal {
             UI::TableNextColumn();
             UI::Text("");
             UI::TableNextColumn();
+            UI::Text("\\$0f0Name Color");
+            InputResult NameColorResult = UIR::InputColor3(150, idpre + "nc", "", RenderHandler::StrToVec3(NameColor));
             UI::TableNextColumn();
             UI::Text("\\$0f0Parameters");
             InputResult ParametersResult = UIR::InputText(250, idpre + "parameters", "", Parameters);
-            UI::TableNextColumn();
-            UI::Text("\\$0f0Name Color");
-            InputResult NameColorResult = UIR::InputColor3(200, idpre + "nc", "", RenderHandler::StrToVec3(NameColor));
 
+#if DEPENDENCY_ULTIMATEMEDALSEXTENDED
+            UI::TableNextColumn();
+            UI::Text("\\$0ffUME \\$0f0Overlay Color");
+            InputResult SecondaryIconColorResult = UIR::InputColor3(200, idpre + "sic", "", RenderHandler::StrToVec3(SecondaryIcon.SubStr(2,3)));
+            UI::TableNextColumn();
+            UI::Text("\\$0ffUME \\$0f0Overlay");
+            InputResult OverlayIconResult = UIR::InputText(100, idpre + "ovi", "", SecondaryIcon.SubStr(5));
+            SecondaryIcon = "\\$" + Text::FormatGameColor(SecondaryIconColorResult.vec3).SubStr(1,3) + OverlayIconResult.string;
+#endif
             Parameters = ParametersResult.string;
             NameColor = Text::FormatGameColor(NameColorResult.vec3).SubStr(1,3);
         }

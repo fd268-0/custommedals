@@ -65,17 +65,19 @@ namespace VariableSettings {
             VariableHandler::UpdateValues();
         }
 
-        if (OnlineHandler::requestsSubmitted < 1) {
+        if (OnlineHandler::GetRequestSubmittedRatio() < 0.1) {
             UI::Text("\\$999" + Icons::CircleO + " No requests sent.");
-        } else if (OnlineHandler::requestsSubmitted < 4) {
+        } else if (OnlineHandler::GetRequestSubmittedRatio() < 0.4) {
             UI::Text("\\$fff" + Icons::ArrowCircleODown + " " + OnlineHandler::requestsSubmitted + " requests sent.");
-        } else if (OnlineHandler::requestsSubmitted < 7) {
-            UI::Text("\\$ff0" + Icons::ArrowCircleOUp + " " + OnlineHandler::requestsSubmitted + "/10 requests sent.");
-        } else if (OnlineHandler::requestsSubmitted < 10) {
-            UI::Text("\\$f80" + Icons::ExclamationCircle + " " + OnlineHandler::requestsSubmitted + "/10 requests sent! Lower requests.");
+        } else if (OnlineHandler::GetRequestSubmittedRatio() < 0.7) {
+            UI::Text("\\$ff0" + Icons::ArrowCircleOUp + " " + OnlineHandler::requestsSubmitted + " requests sent.");
+        } else if (OnlineHandler::GetRequestSubmittedRatio() < 1) {
+            UI::Text("\\$f80" + Icons::ExclamationCircle + " " + OnlineHandler::requestsSubmitted + " requests sent! Lower requests.");
         } else {
             UI::Text("\\$f00" + Icons::TimesCircle + " Request limit reached! Try sending less requests.");
         }
+        UI::SameLine();
+        UI::Text("\\$999" + Math::Floor(OnlineHandler::GetRequestSubmittedRatio()*100.0) + "%");
         UI::Separator();
         ReloadInterval = IntervalComboBox("Recalculation Interval", ReloadInterval);
         UI::Text(Icons::ClockO + " " + Math::Floor(sinceLastVariableReload/1000.0) + "s");

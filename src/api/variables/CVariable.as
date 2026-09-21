@@ -14,6 +14,8 @@ class CVariable {
             Value = OnlineHandler::officalCampaignType();
         } else if (Type == VariableHandler::VARIABLETYPE::PlayerRecord) {
             Value = OnlineHandler::getTimeFromUser(Parameter);
+        } else if (Type == VariableHandler::VARIABLETYPE::CurrentPosition) {
+            Value = OnlineHandler::getPositionOfTime();
         }
         if (Processing) {
             Processing = false;

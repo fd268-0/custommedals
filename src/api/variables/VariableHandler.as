@@ -3,15 +3,17 @@ namespace VariableHandler {
 
     enum VARIABLETYPE {
         Leaderboard,
-        CampaignType,
         PlayerRecord,
+        CurrentPosition,
+        CampaignType,
         Number,
     }
 
     array<string> prefixes = {
         "Position",
-        "",
         "Account ID",
+        "",
+        "",
         "float",
     };
 

@@ -247,6 +247,9 @@ namespace OperationHandler {
                 arr = replaceValues(arr, "$GT", ""+track.MapInfo.TMObjective_GoldTime);
                 arr = replaceValues(arr, "$AT", ""+track.MapInfo.TMObjective_AuthorTime);
                 arr = replaceValues(arr, "$CLONES", ""+track.MapInfo.TMObjective_NbClones);
+
+                arr = replaceValues(arr, "$PLAYERS", ""+ImportHandler::players);
+                arr = replaceValues(arr, "$WRST", ""+ImportHandler::worstTime);
                 if (track.MapInfo.TMObjective_IsLapRace) {
                     arr = replaceValues(arr, "$LAPS", ""+track.MapInfo.TMObjective_NbLaps);
                 } else {

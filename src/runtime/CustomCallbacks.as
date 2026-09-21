@@ -1,9 +1,11 @@
 void MapEntered() {
+    ImportHandler::GetMapInfo();
     MedalHandler::UpdateValues();
     VariableHandler::UpdateValues();
 }
 
 void MapExited() {
+    ImportHandler::ClearImports();
     VariableHandler::ResetValues();
     OnlineHandler::mapId = "";
     OnlineHandler::accountIdList = {};

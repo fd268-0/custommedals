@@ -58,3 +58,9 @@ void Render() {
         RenderHandler::RenderMenu();
     }
 }
+
+void RenderMenu() {
+    if (UI::MenuItem("\\$0f8" + Icons::DotCircleO + " \\$fffCustom Medals", "")) {
+        Meta::OpenSettings();
+    }
+}
