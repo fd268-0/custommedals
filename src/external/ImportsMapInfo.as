@@ -3,7 +3,7 @@ namespace ImportHandler {
     int worstTime = -1;
     void GetMapInfo() {
 #if DEPENDENCY_MAPINFO
-        while (MapInfo::GetCurrentMapInfo().LoadedNbPlayers == false || MapInfo::GetCurrentMapInfo().LoadedMapData == false) {
+        while (MapInfo::GetCurrentMapInfo().LoadedNbPlayers == false || MapInfo::GetCurrentMapInfo().NbPlayers < 0 || MapInfo::GetCurrentMapInfo().LoadedMapData == false) {
             yield();
         }
         
