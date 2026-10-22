@@ -28,6 +28,13 @@ namespace OnlineHandler {
         return request;
     }
 
+    string StringFromExternalUrl(const string url) {
+        Net::HttpRequest@ finishedRequest = ExternalGet(url);
+
+        string body = finishedRequest.String();
+        return body;
+    }
+
     float GetRequestSubmittedRatio() {
         float max = 20;
         if (ReloadInterval == VariableSettings::RELOADINTERVAL::Per120s) {
@@ -45,7 +52,7 @@ namespace OnlineHandler {
             return Json::Object();
         }
         if (OnlineHandler::requestsSubmitted > 1) {
-            sleep(600+float(OnlineHandler::requestsSubmitted)*200);
+            sleep(600+int(OnlineHandler::requestsSubmitted)*200);
         }
 
         OnlineHandler::requestsSubmitted += 1;

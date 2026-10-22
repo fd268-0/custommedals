@@ -142,7 +142,7 @@ class CMedal {
             UI::Text("\\$0f0Name Color");
             InputResult NameColorResult = UIR::InputColor3(150, idpre + "nc", "", RenderHandler::StrToVec3(NameColor));
             UI::TableNextColumn();
-            UI::Text("\\$0f0Parameters");
+            UI::Text("\\$ff9" + Icons::InfoCircle + " \\$0f0Parameters");
             InputResult ParametersResult = UIR::InputText(250, idpre + "parameters", "", Parameters);
 
 #if DEPENDENCY_ULTIMATEMEDALSEXTENDED

@@ -47,6 +47,6 @@ namespace MedalSettings {
         UI::PushFontSize(24);
         UI::Text("Quick Reference");
         UI::PopFontSize();
-        UI::Text(documents[5].Description+"\n"+documents[6].Description);
+        UI::Text(documents[8].Description+"\n"+documents[9].Description);
     }
 }

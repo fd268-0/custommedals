@@ -6,16 +6,18 @@ class CVariable {
         }
         Processing = true;
         float FloatParam = OperationHandler::arrayToAns(Parameter);
-        if (Type == VariableHandler::VARIABLETYPE::Number) {
-            Value = int(FloatParam);
+        if (Type == VariableHandler::VARIABLETYPE::Operation) {
+            Value = Parameter;
         } else if (Type == VariableHandler::VARIABLETYPE::Leaderboard) {
-            Value = OnlineHandler::getTimeAtPos(int(FloatParam));
+            Value = OnlineHandler::getTimeAtPos(int(FloatParam)) + "";
         } else if (Type == VariableHandler::VARIABLETYPE::CampaignType) {
-            Value = OnlineHandler::officalCampaignType();
+            Value = OnlineHandler::officalCampaignType() + "";
         } else if (Type == VariableHandler::VARIABLETYPE::PlayerRecord) {
-            Value = OnlineHandler::getTimeFromUser(Parameter);
+            Value = OnlineHandler::getTimeFromUser(Parameter) + "";
         } else if (Type == VariableHandler::VARIABLETYPE::CurrentPosition) {
-            Value = OnlineHandler::getPositionOfTime();
+            Value = OnlineHandler::getPositionOfTime() + "";
+        } else if (Type == VariableHandler::VARIABLETYPE::ExternalUrl) {
+            Value = OnlineHandler::StringFromExternalUrl(OperationHandler::arrayToString(Parameter));
         }
         if (Processing) {
             Processing = false;
@@ -92,8 +94,8 @@ class CVariable {
         Name = NameResult.string;
     }
 
-    int ValueInternal = -1;
-    int Value {
+    string ValueInternal = "-1";
+    string Value {
         get {
             return ValueInternal;
         }
@@ -103,7 +105,7 @@ class CVariable {
         }
     }
 
-    int Type = VariableHandler::VARIABLETYPE::Number;
+    int Type = VariableHandler::VARIABLETYPE::Operation;
     string Parameter = "";
     string Name = "";
 

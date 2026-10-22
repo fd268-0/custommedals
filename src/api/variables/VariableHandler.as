@@ -6,21 +6,23 @@ namespace VariableHandler {
         PlayerRecord,
         CurrentPosition,
         CampaignType,
-        Number,
+        Operation,
+        ExternalUrl,
     }
 
     array<string> prefixes = {
         "Position",
-        "Account ID",
+        "\\$ff9" + Icons::InfoCircle + " \\$999Account ID",
         "",
         "",
-        "float",
+        "Operation",
+        "\\$f00" + Icons::ExclamationTriangle + "\\$ff9" + Icons::InfoCircle + " \\$999Check docs",
     };
 
     VARIABLETYPE TypeComboBox(const string label, int currentInt) {
         VARIABLETYPE current = VARIABLETYPE(currentInt);
         if (UI::BeginCombo(label, tostring(current))) {
-            for (uint i = 0; i <= VARIABLETYPE::Number; i++) {
+            for (uint i = 0; i <= VARIABLETYPE::ExternalUrl; i++) {
                 string enumName = tostring(VARIABLETYPE(i));
                 if (UI::Selectable(enumName, enumName == tostring(current))) {
                     current = VARIABLETYPE(i);
@@ -37,7 +39,7 @@ namespace VariableHandler {
         for (uint i = 0; i < variables.Length; i++) {
             variables[i].Completed = false;
             variables[i].Processing = false;
-            variables[i].Value = -1;
+            variables[i].Value = "-1";
         }
     }
 

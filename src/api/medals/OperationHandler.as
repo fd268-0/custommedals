@@ -5,6 +5,7 @@ enum OPERTYPE {
     Condition,
     Unknown,
     Special,
+    String,
 }
 
 namespace OperationHandler {
@@ -96,6 +97,56 @@ namespace OperationHandler {
         return rangeToStr(arr, pos, pos+size-1, ""+answer);
     }
 
+    array<array<string>> getList(const array<string> curarr, int start, int end) {
+        // No safeguards are in place for now
+        array<array<string>> list = {};
+        array<int> commas = getPositionsOfStrs(curarr, {"(", "[", ",", ")", "]"});
+        for (uint i = 0; i < commas.Length; i++) {
+            if (commas[i] > end) {
+                break;
+            }
+            if (commas[i] <= start) {
+                continue;
+            }
+            if (i > 0) {
+                list.InsertLast(getRangeFromList(curarr, commas[i-1]+1, commas[i]-1));
+            }
+        }
+        return list;
+    }
+
+    array<string> performListSearch(const array<string> curarr) {
+        // Expected format: 0@(5+3,6,7*3)
+        iterateEscapeCounter();
+        int pos = getPositionsOfStrs(curarr, {"@"})[0];
+        int endingPos = pos + 1;
+        int startingPos = pos - 1;
+        uint startingValue = 0;
+        if (startingPos < 0) {
+            escape = true;
+            return {};
+        }
+        if (Text::TryParseUInt(curarr[startingPos], 0) == false) {
+            escape = true;
+            return {};
+        }
+        startingValue = Text::ParseUInt(curarr[startingPos]);
+        array<int> endBrackets = getPositionsOfStrs(curarr, {")", "]"});
+        for (uint i = 0; i < endBrackets.Length; i++) {
+            if (endBrackets[i] > pos) {
+                endingPos = endBrackets[i];
+                break;
+            }
+        }
+        array<array<string>> list = getList(curarr, startingPos, endingPos);
+        if (startingValue >= list.Length) {
+            escape = true;
+            return {};
+        }
+        array<string> value = list[startingValue];
+        return rangeToArr(curarr, startingPos, endingPos, value);
+    }
+
     array<string> performConditional(const array<string> curarr) {
         iterateEscapeCounter();
 
@@ -137,7 +188,7 @@ namespace OperationHandler {
         string s2 = range[righthanded ? 1 : 2];
         float n1 = -1;
         float n2 = -1;
-        if (op == "==" || op == "!=") {
+        if (op == "==" || op == "!=" || op == "..") {
                 // bla
             } else {
                 if ((Text::TryParseFloat(s1, 0) == false && ! righthanded) || Text::TryParseFloat(s2, 0) == false) {
@@ -160,6 +211,8 @@ namespace OperationHandler {
             }
         } else if (op == "+") {
             answer = n1 + n2;
+        } else if (op == "..") {
+            return rangeToStr(arr, righthanded ? pos : pos-1, pos+1, s1 + s2);
         } else if (op == "-") {
             answer = n1 - n2;
         } else if (op == "^") {
@@ -223,7 +276,7 @@ namespace OperationHandler {
         array<string> arr = curarr;
         array<int> poses = getPositionsOfStrs(arr, {str});
         for (uint i = 0; i < poses.Length; i++) {
-            arr[poses[i]] = rep;
+            arr = rangeToArr(arr, poses[i], poses[i], stringToArray(rep));
         }
         return arr;
     }
@@ -244,6 +297,7 @@ namespace OperationHandler {
                 }
                 arr = replaceValues(arr, "$BT", ""+track.MapInfo.TMObjective_BronzeTime);
                 arr = replaceValues(arr, "$ST", ""+track.MapInfo.TMObjective_SilverTime);
+                arr = replaceValues(arr, "$MAPUID", ""+track.MapInfo.MapUid);
                 arr = replaceValues(arr, "$GT", ""+track.MapInfo.TMObjective_GoldTime);
                 arr = replaceValues(arr, "$AT", ""+track.MapInfo.TMObjective_AuthorTime);
                 arr = replaceValues(arr, "$CLONES", ""+track.MapInfo.TMObjective_NbClones);
@@ -272,17 +326,37 @@ namespace OperationHandler {
             }
         }
 
-        //print(Text::Join(arr, ";")); 
-
-
-        while (getPositionsOfStrs(arr, {"(","["}).Length > 0 && escape == false) {
+         while (getPositionsOfStrs(arr, {"("}).Length > 0 && escape == false) {
             iterateEscapeCounter();
-            array<int> leftBrackets = getPositionsOfStrs(arr, {"(","["});
+            array<int> leftBrackets = getPositionsOfStrs(arr, {"("});
             array<string> splitarr = arr;
             if (leftBrackets.Length > 1) {
                 splitarr.RemoveRange(leftBrackets[1],999999);
             }
-            array<int> rightBrackets = getPositionsOfStrs(splitarr, {")","]"});
+            array<int> rightBrackets = getPositionsOfStrs(splitarr, {")"});
+            int lPos = leftBrackets[0];
+
+            if (rightBrackets.Length > 0) {
+                int rPos = rightBrackets[rightBrackets.Length-1];
+                array<string> answer = arrayToArr(getRangeFromList(arr, lPos+1, rPos-1), variableInserts, params);
+                arr = rangeToArr(arr, lPos, rPos, answer);
+            } else {
+                arr.RemoveAt(lPos);
+            }
+        }
+
+        while (getPositionsOfStrs(arr, {"@"}).Length > 0 && escape == false) {
+            arr = performListSearch(arr);
+        }
+
+        while (getPositionsOfStrs(arr, {"["}).Length > 0 && escape == false) {
+            iterateEscapeCounter();
+            array<int> leftBrackets = getPositionsOfStrs(arr, {"["});
+            array<string> splitarr = arr;
+            if (leftBrackets.Length > 1) {
+                splitarr.RemoveRange(leftBrackets[1],999999);
+            }
+            array<int> rightBrackets = getPositionsOfStrs(splitarr, {"]"});
             int lPos = leftBrackets[0];
 
             if (rightBrackets.Length > 0) {
@@ -296,6 +370,10 @@ namespace OperationHandler {
 
         while (getPositionsOfStrs(arr, rightHandedOperators).Length > 0 && escape == false) {
             arr = performOperand(arr, rightHandedOperators);
+        }
+
+        while (getPositionsOfStrs(arr, {".."}).Length > 0 && escape == false) {
+            arr = performOperand(arr, {".."});
         }
 
         while (getPositionsOfStrs(arr, {"^"}).Length > 0 && escape == false) {
@@ -334,6 +412,15 @@ namespace OperationHandler {
     }
 
     float arrayToAns(const string curarr, const string&in params = "") {
+        string ans = arrayToString(curarr, params);
+        float numAns = -2;
+        if (Text::TryParseFloat(ans, 0)) {
+            numAns = Text::ParseFloat(ans);
+        }
+        return numAns;
+    }
+
+    string arrayToString(const string curarr, const string&in params = "") {
         array<string> sepParams = params.Split(",");
         array<string> lines = curarr.Split(";");
         dictionary variables = {};
@@ -359,11 +446,7 @@ namespace OperationHandler {
                 variables[vname] = ans;
             }
         }
-        float numAns = -2;
-        if (Text::TryParseFloat(ans, 0)) {
-            numAns = Text::ParseFloat(ans);
-        }
-        return numAns;
+        return ans;
     }
 
     string arrayToAnsSingular(const array<string> curarr, const dictionary variables = {}, const array<string>&in params = {}) {
@@ -374,13 +457,22 @@ namespace OperationHandler {
     array<string> stringToArray(const string estr, const array<string>&in params = {}) {
         OPERTYPE curOperation = OPERTYPE::Operation;
         string opText = "";
+        bool stringEnabled = false;
         string str = Regex::Replace(estr, " ", "");
         array<string> split = {};
         for (int i = 0; i < int(str.Length); i++) {
 		    string byte = str.SubStr(i, 1);
             string addedOp = opText + byte;
             OPERTYPE byteOperation = OPERTYPE::Unknown;
-            if (Regex::Search(byte, "([*^%+\\/,?:])").Length > 0 && curOperation != OPERTYPE::Operation) {
+            if (Regex::Search(byte, '(["])').Length > 0) {
+                stringEnabled = !stringEnabled;
+                if (stringEnabled) {
+                    byteOperation = OPERTYPE::String;
+                }
+            }
+            if (stringEnabled) {
+                byteOperation = OPERTYPE::String;
+            } else if (Regex::Search(byte, "([*^%+\\/,?:@])").Length > 0 && curOperation != OPERTYPE::Operation) {
                 byteOperation = OPERTYPE::Operation;
             } else if (Regex::Search(byte, "([()\\[\\]])").Length > 0) {
                 byteOperation = OPERTYPE::Bracket;
@@ -388,7 +480,7 @@ namespace OperationHandler {
                 byteOperation = OPERTYPE::Condition;
             } else if (Regex::Search(byte, "([-])").Length > 0 && (str.SubStr(i-1, 1) == ")" || curOperation == OPERTYPE::Number)) {
                 byteOperation = OPERTYPE::Operation;
-            } else if ((addedOp == "return") && (params.Find("coperators") >= 0)) {
+            } else if (((addedOp == "return") && (params.Find("coperators") >= 0)) || opText == "..") {
                 byteOperation = OPERTYPE::Special;
             } else {
                 byteOperation = OPERTYPE::Number;
@@ -398,7 +490,9 @@ namespace OperationHandler {
                 split.InsertLast(opText);
                 opText = "";
             }
-            opText = opText + byte;
+            if (Regex::Search(byte, '(["])').Length == 0) {
+                opText = opText + byte;
+            }
         }
         if (opText.Length > 0) {
             split.InsertLast(opText);
